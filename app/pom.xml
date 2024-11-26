@@ -591,8 +591,11 @@ limitations under the License.
             <version>5.0.1</version>
             <scope>test</scope>
         </dependency>
-
-    </dependencies>
+  <dependency>
+   <groupId>org.owasp.encoder</groupId>
+   <artifactId>encoder</artifactId>
+  </dependency>
+ </dependencies>
 
     <build>
 
@@ -769,23 +772,16 @@ limitations under the License.
                             <target>
                                 <!-- Workaround for git distribution that doesn't keep empty directories.
                                      For detail check [ROL-2086] -->
-                                <taskdef resource="net/sf/antcontrib/antlib.xml" />
-                                <property file="${basedir}/src/main/resources/sql/dbscripts.properties" />
+                                For detail check [ROL-2086] -->
+                                "net/sf/antcontrib/antlib.xml" />
                                 <for list="${databases}" param="database" delimiter=" ">
                                     <sequential>
-                                        <mkdir dir="${basedir}/target/classes/dbscripts/@{database}" />
+                                        <sequential>
                                     </sequential>
                                 </for>
 
-                                <taskdef name="texen"
-                                         classname="org.apache.velocity.texen.ant.TexenTask"
-                                         classpathref="maven.plugin.classpath"/>
-                                <texen
-                                    controlTemplate  ="control.vm"
-                                    contextProperties="${basedir}/src/main/resources/sql/dbscripts.properties"
-                                    templatePath     ="${basedir}/src/main/resources/sql"
-                                    outputDirectory  ="${basedir}/target/classes/dbscripts"
-                                    outputFile       ="README.txt"/>
+                                </for>
+                                athref="maven.plugin.classpath"/>
                             </target>
                         </configuration>
                     </execution>
