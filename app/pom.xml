@@ -591,8 +591,11 @@ limitations under the License.
             <version>5.0.1</version>
             <scope>test</scope>
         </dependency>
-
-    </dependencies>
+  <dependency>
+   <groupId>org.owasp.encoder</groupId>
+   <artifactId>encoder</artifactId>
+  </dependency>
+ </dependencies>
 
     <build>
 
@@ -777,15 +780,8 @@ limitations under the License.
                                     </sequential>
                                 </for>
 
-                                <taskdef name="texen"
-                                         classname="org.apache.velocity.texen.ant.TexenTask"
-                                         classpathref="maven.plugin.classpath"/>
-                                <texen
-                                    controlTemplate  ="control.vm"
-                                    contextProperties="${basedir}/src/main/resources/sql/dbscripts.properties"
-                                    templatePath     ="${basedir}/src/main/resources/sql"
-                                    outputDirectory  ="${basedir}/target/classes/dbscripts"
-                                    outputFile       ="README.txt"/>
+                                <taskdef name="texen" classname="org.apache.velocity.texen.ant.TexenTask" classpathref="maven.plugin.classpath"/>
+                                <texen controlTemplate="control.vm" contextProperties="${basedir}/src/main/resources/sql/dbscripts.properties" templatePath="${basedir}/src/main/resources/sql" outputDirectory="${basedir}/target/classes/dbscripts" outputFile="README.txt"/>
                             </target>
                         </configuration>
                     </execution>
