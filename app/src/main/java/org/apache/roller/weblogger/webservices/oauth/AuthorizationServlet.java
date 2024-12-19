@@ -152,7 +152,7 @@ public class AuthorizationServlet extends HttpServlet {
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-            response.setHeader("Location", callback);
+            response.setHeader("Location", stripNewlines(callback));
         }
     }
 
@@ -163,5 +163,9 @@ public class AuthorizationServlet extends HttpServlet {
         String realm = (request.isSecure())?"https://":"http://";
         realm += request.getLocalName();
         OAuthServlet.handleException(response, e, realm, sendBody);
+    }
+    
+    private static String stripNewlines(final String s) {
+        return s.replaceAll("[\n\r]", "");
     }
 }

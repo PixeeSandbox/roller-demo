@@ -130,7 +130,7 @@ public class FolderEdit extends UIAction implements ServletResponseAware {
                 // HTTP response splitting defense
                 String sanetizedFolderID = folderId.replace("\n", "").replace("\r", "");
 
-                httpServletResponse.addHeader("folderId", sanetizedFolderID);
+                httpServletResponse.addHeader("folderId", stripNewlines(sanetizedFolderID));
 
                 return SUCCESS;
 
@@ -171,5 +171,9 @@ public class FolderEdit extends UIAction implements ServletResponseAware {
 
     public void setFolderId(String folderId) {
         this.folderId = folderId;
+    }
+    
+    private static String stripNewlines(final String s) {
+        return s.replaceAll("[\n\r]", "");
     }
 }
