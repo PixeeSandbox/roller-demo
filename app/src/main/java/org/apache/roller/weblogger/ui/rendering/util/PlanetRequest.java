@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,7 +49,7 @@ public class PlanetRequest extends ParsedRequest {
         super(request);
         
         // parse the request object and figure out what we've got
-        log.debug("parsing url "+request.getRequestURL());
+        log.debug("parsing url "+stripAll(request.getRequestURL()));
         
         String servlet = request.getServletPath();
         

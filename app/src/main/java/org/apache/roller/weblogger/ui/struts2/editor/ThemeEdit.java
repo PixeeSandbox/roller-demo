@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Collections;
 import java.util.List;
 
@@ -97,7 +98,7 @@ public class ThemeEdit extends UIAction {
             }
         } catch (WebloggerException ex) {
             log.error("Error looking up stylesheet on weblog - "
-                    + getActionWeblog().getHandle(), ex);
+                    + stripAll(getActionWeblog().getHandle()), ex);
         }
     }
 
@@ -141,7 +142,7 @@ public class ThemeEdit extends UIAction {
                     }
                 } catch (Exception re) {
                     log.error("Error customizing theme for weblog - "
-                            + getActionWeblog().getHandle(), re);
+                            + stripAll(getActionWeblog().getHandle()), re);
                     addError("generic.error.check.logs");
                     return execute();
                 }
@@ -162,7 +163,7 @@ public class ThemeEdit extends UIAction {
 
                 } catch (WebloggerException re) {
                     log.error("Error saving weblog - "
-                            + getActionWeblog().getHandle(), re);
+                            + stripAll(getActionWeblog().getHandle()), re);
                     addError("generic.error.check.logs");
                 }
             }
@@ -217,7 +218,7 @@ public class ThemeEdit extends UIAction {
                     }
 
                 } catch (WebloggerException re) {
-                    log.error("Error saving weblog - " + getActionWeblog().getHandle(), re);
+                    log.error("Error saving weblog - " + stripAll(getActionWeblog().getHandle()), re);
                     addError("generic.error.check.logs");
                 }
             }

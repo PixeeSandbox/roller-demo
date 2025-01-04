@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.servlets;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.ServletConfig;
@@ -89,7 +90,7 @@ public class PreviewResourceServlet extends HttpServlet {
             return;
         }
 
-        log.debug("Resource requested [" + resourceRequest.getResourcePath()
+        log.debug("Resource requested [" + stripAll(resourceRequest.getResourcePath())
                 + "]");
 
         long resourceLastMod = 0;

@@ -17,6 +17,7 @@
  */
 package org.apache.roller.weblogger.ui.rendering.plugins.comments;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Hashtable;
 import java.util.Locale;
 
@@ -131,7 +132,7 @@ public class LdapCommentAuthenticator implements CommentAuthenticator {
 				env.put(Context.PROVIDER_URL, "ldap://" + ldapHost + ":" + ldapPort);  
 				context = new InitialLdapContext(env, null);
 				validUser = true;
-				LOG.info("LDAP Authentication Successful. user: " + ldapUser);
+				LOG.info("LDAP Authentication Successful. user: " + stripAll(ldapUser));
 			} catch (Exception e) {
 				// unexpected
 				LOG.error(e);

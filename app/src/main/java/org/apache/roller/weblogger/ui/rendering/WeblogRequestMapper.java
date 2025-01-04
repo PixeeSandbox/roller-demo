@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -98,7 +99,7 @@ public class WeblogRequestMapper implements RequestMapper {
         String weblogRequestContext = null;
         String weblogRequestData = null;
         
-        log.debug("evaluating ["+request.getRequestURI()+"]");
+        log.debug("evaluating ["+stripAll(request.getRequestURI())+"]");
         
         // figure out potential weblog handle
         String servlet = request.getRequestURI();
@@ -127,11 +128,11 @@ public class WeblogRequestMapper implements RequestMapper {
             }
         }
         
-        log.debug("potential weblog handle = "+weblogHandle);
+        log.debug("potential weblog handle = "+stripAll(weblogHandle));
         
         // check if it's a valid weblog handle
         if(restricted.contains(weblogHandle) || !this.isWeblog(weblogHandle)) {
-            log.debug("SKIPPED "+weblogHandle);
+            log.debug("SKIPPED "+stripAll(weblogHandle));
             return false;
         }
 
@@ -145,12 +146,12 @@ public class WeblogRequestMapper implements RequestMapper {
             String configHost = weblogAbsoluteURL.getHost();
 
             if (headerHost != null && configHost != null && !headerHost.equals(configHost)) {
-                log.debug("SKIPPED " + weblogHandle);
+                log.debug("SKIPPED " + stripAll(weblogHandle));
                 return false;
             }
         }
         
-        log.debug("WEBLOG_URL "+request.getServletPath());
+        log.debug("WEBLOG_URL "+stripAll(request.getServletPath()));
         
         // parse the rest of the url and build forward url
         if(pathInfo != null) {
@@ -234,7 +235,7 @@ public class WeblogRequestMapper implements RequestMapper {
         }
         
         // dispatch to forward url
-        log.debug("forwarding to "+forwardUrl);
+        log.debug("forwarding to "+stripAll(forwardUrl));
         RequestDispatcher dispatch = request.getRequestDispatcher(forwardUrl);
         dispatch.forward(request, response);
         
@@ -402,7 +403,7 @@ public class WeblogRequestMapper implements RequestMapper {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("FORWARD_URL "+forwardUrl.toString());
+            log.debug("FORWARD_URL "+stripAll(forwardUrl.toString()));
         }
         
         return forwardUrl.toString();
@@ -415,7 +416,7 @@ public class WeblogRequestMapper implements RequestMapper {
      */
     private boolean isWeblog(String potentialHandle) {
         
-        log.debug("checking weblog handle "+potentialHandle);
+        log.debug("checking weblog handle "+stripAll(potentialHandle));
         
         boolean isWeblog = false;
         

@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.servlets;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.net.MalformedURLException;
 import java.net.URL;
 import org.apache.commons.lang3.StringUtils;
@@ -585,7 +586,7 @@ public class PageServlet extends HttpServlet {
      */
     private boolean processReferrer(HttpServletRequest request) {
 
-        log.debug("processing referrer for " + request.getRequestURI());
+        log.debug("processing referrer for " + stripAll(request.getRequestURI()));
 
         // bleh! because ref processing does a flush it will close
         // our hibernate session and cause lazy init exceptions on
@@ -620,7 +621,7 @@ public class PageServlet extends HttpServlet {
         if (urlValidator.isValid(request.getHeader("Referer"))) {
             referrerUrl = request.getHeader("Referer");
         }
-        log.debug("referrer = " + referrerUrl);
+        log.debug("referrer = " + stripAll(referrerUrl));
 
         StringBuffer reqsb = request.getRequestURL();
         if (request.getQueryString() != null) {
@@ -669,7 +670,7 @@ public class PageServlet extends HttpServlet {
                             && BannedwordslistChecker.checkReferrer(pageRequest.getWeblog(), referrerUrl);
                 }
             } else {
-                log.debug("Ignoring referer = " + referrerUrl);
+                log.debug("Ignoring referer = " + stripAll(referrerUrl));
                 return false;
             }
         }

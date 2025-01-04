@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -307,11 +308,11 @@ public class Comments extends UIAction {
             String[] ids = Utilities.stringToStringArray(getBean().getIds(),
                     ",");
             for (int i = 0; i < ids.length; i++) {
-                log.debug("processing id - " + ids[i]);
+                log.debug("processing id - " + stripAll(ids[i]));
 
                 // if we already deleted it then skip forward
                 if (deletes.contains(ids[i])) {
-                    log.debug("Already deleted, skipping - " + ids[i]);
+                    log.debug("Already deleted, skipping - " + stripAll(ids[i]));
                     continue;
                 }
 

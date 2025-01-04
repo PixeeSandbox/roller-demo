@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletRequest;
@@ -135,12 +136,12 @@ public class WeblogCommentRequest extends WeblogRequest {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("name = "+this.name);
-            log.debug("email = "+this.email);
-            log.debug("url = "+this.url);
-            log.debug("content = "+this.content);
+            log.debug("name = "+stripAll(this.name));
+            log.debug("email = "+stripAll(this.email));
+            log.debug("url = "+stripAll(this.url));
+            log.debug("content = "+stripAll(this.content));
             log.debug("notify = "+this.notify);
-            log.debug("weblogAnchor = "+this.weblogAnchor);
+            log.debug("weblogAnchor = "+stripAll(this.weblogAnchor));
         }
     }
 

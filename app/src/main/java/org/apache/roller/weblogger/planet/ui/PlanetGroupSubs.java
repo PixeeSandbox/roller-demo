@@ -16,6 +16,7 @@
 
 package org.apache.roller.weblogger.planet.ui;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -97,7 +98,7 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
                 planetGroup = pmgr.getGroup(planet, "all");
             }
         } catch (Exception ex) {
-            log.error("Error " + action, ex);
+            log.error("Error " + stripAll(action), ex);
         }
         return planetGroup;
     }
@@ -124,7 +125,7 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
                 PlanetGroup existingGroup = planetManager.getGroup(getPlanet(), getGroup().getHandle());
 
                 if (existingGroup == null) {
-                    log.debug("Adding New Group: " + getGroup().getHandle());
+                    log.debug("Adding New Group: " + stripAll(getGroup().getHandle()));
                     planetManager.saveNewPlanetGroup(getPlanet(), getGroup());
 
                 } else {
@@ -181,7 +182,7 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
                 // check if this subscription already exists before adding it
                 Subscription sub = pmgr.getSubscription(getSubUrl());
                 if (sub == null) {
-                    log.debug("Adding New Subscription - " + getSubUrl());
+                    log.debug("Adding New Subscription - " + stripAll(getSubUrl()));
 
                     // sub doesn't exist yet, so we need to fetch it
                     FeedFetcher fetcher = WebloggerFactory.getWeblogger().getFeedFetcher();
@@ -192,7 +193,7 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
 
                 } else {
                     // Subscription already exists
-                    log.debug("Adding Existing Subscription - " + getSubUrl());
+                    log.debug("Adding Existing Subscription - " + stripAll(getSubUrl()));
                 }
 
                 // add the sub to the group

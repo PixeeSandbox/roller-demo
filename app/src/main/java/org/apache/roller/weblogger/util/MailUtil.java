@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -591,7 +592,7 @@ public class MailUtil {
             for (int i = 0; i < to.length; i++) {
                 sendTo[i] = new InternetAddress(to[i]);
                 if (log.isDebugEnabled()) {
-                    log.debug("sending e-mail to: " + to[i]);
+                    log.debug("sending e-mail to: " + stripAll(to[i]));
                 }
             }
             message.setRecipients(Message.RecipientType.TO, sendTo);
@@ -603,7 +604,7 @@ public class MailUtil {
             for (int i = 0; i < cc.length; i++) {
                 copyTo[i] = new InternetAddress(cc[i]);
                 if (log.isDebugEnabled()) {
-                    log.debug("copying e-mail to: " + cc[i]);
+                    log.debug("copying e-mail to: " + stripAll(cc[i]));
                 }
             }
             message.setRecipients(Message.RecipientType.CC, copyTo);

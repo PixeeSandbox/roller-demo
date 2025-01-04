@@ -17,6 +17,7 @@
  */
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +60,7 @@ public class MediaFileBase extends UIAction {
     protected void doDeleteMediaFile() {
 
         try {
-            log.debug("Processing delete of file id - " + this.mediaFileId);
+            log.debug("Processing delete of file id - " + stripAll(this.mediaFileId));
             MediaFileManager manager = WebloggerFactory.getWeblogger()
                     .getMediaFileManager();
             MediaFile mediaFile = manager.getMediaFile(this.mediaFileId);
@@ -81,7 +82,7 @@ public class MediaFileBase extends UIAction {
 
         try {
             log.debug("Processing include-in-gallery of file id - "
-                    + this.mediaFileId);
+                    + stripAll(this.mediaFileId));
             MediaFileManager manager = WebloggerFactory.getWeblogger()
                     .getMediaFileManager();
             MediaFile mediaFile = manager.getMediaFile(this.mediaFileId);
@@ -110,7 +111,7 @@ public class MediaFileBase extends UIAction {
                 log.debug("Processing delete of " + fileIds.length
                         + " media files.");
                 for (String fileId : fileIds) {
-                    log.debug("Deleting media file - " + fileId);
+                    log.debug("Deleting media file - " + stripAll(fileId));
                     MediaFile mediaFile = manager.getMediaFile(fileId);
                     if (mediaFile != null) {
                         manager.removeMediaFile(getActionWeblog(), mediaFile);

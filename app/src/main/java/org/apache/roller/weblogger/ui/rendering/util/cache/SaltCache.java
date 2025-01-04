@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util.cache;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,13 +80,13 @@ public final class SaltCache {
         if(lazyEntry != null) {
             entry = lazyEntry.getValue();
             if(entry != null) {
-                log.debug("HIT "+key);
+                log.debug("HIT "+stripAll(key));
             } else {
-                log.debug("HIT-EXPIRED "+key);
+                log.debug("HIT-EXPIRED "+stripAll(key));
             }
             
         } else {
-            log.debug("MISS "+key);
+            log.debug("MISS "+stripAll(key));
         }
         
         return entry != null ? entry.toString() : null;
@@ -101,7 +102,7 @@ public final class SaltCache {
     
     public void remove(String key) {
         contentCache.remove(key);
-        log.debug("REMOVE "+key);
+        log.debug("REMOVE "+stripAll(key));
     }
     
     

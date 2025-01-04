@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.core.filters;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 
 import javax.servlet.Filter;
@@ -71,7 +72,7 @@ public class InitFilter implements Filter {
 
                 if (log.isDebugEnabled()) {
                     log.debug("relPath = " + relPath);
-                    log.debug("absPath = " + absPath);
+                    log.debug("absPath = " + stripAll(absPath));
                 }
 
                 this.initialized = true;
@@ -111,7 +112,7 @@ public class InitFilter implements Filter {
         // if the uri is only "/" then we are basically done
         if ("/".equals(requestURI)) {
             if (log.isDebugEnabled()) {
-                log.debug("requestURI is only '/'. fullUrl: " + fullUrl);
+                log.debug("requestURI is only '/'. fullUrl: " + stripAll(fullUrl));
             }
             return removeTrailingSlash(fullUrl);
         }

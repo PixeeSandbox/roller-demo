@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.util.cache;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.util.RollerConstants;
@@ -83,7 +84,7 @@ public class ExpiringLRUCacheImpl extends LRUCacheImpl {
             
             // if the value is null then that means this entry expired
             if (value == null) {
-                log.debug("EXPIRED ["+key+"]");
+                log.debug("EXPIRED ["+stripAll(key)+"]");
                 hits--;
                 super.remove(key);
             }

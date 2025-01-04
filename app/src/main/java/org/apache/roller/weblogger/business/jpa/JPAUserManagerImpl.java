@@ -18,6 +18,7 @@
  */
 package org.apache.roller.weblogger.business.jpa;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.sql.Timestamp;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -170,7 +171,7 @@ public class JPAUserManagerImpl implements UserManager {
             if (user != null) {
                 // only return the user if the enabled status matches
                 if(enabled == null || enabled.equals(user.getEnabled())) {
-                    log.debug("userNameToIdMap CACHE HIT - "+userName);
+                    log.debug("userNameToIdMap CACHE HIT - "+stripAll(userName));
                     return user;
                 }
             } else {
@@ -203,7 +204,7 @@ public class JPAUserManagerImpl implements UserManager {
 
         // add mapping to cache
         if(user != null) {
-            log.debug("userNameToIdMap CACHE MISS - " + userName);
+            log.debug("userNameToIdMap CACHE MISS - " + stripAll(userName));
             this.userNameToIdMap.put(user.getUserName(), user.getId());
         }
 

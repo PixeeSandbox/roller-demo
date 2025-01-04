@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.admin;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -273,11 +274,11 @@ public class GlobalCommentManagement extends UIAction implements ServletRequestA
             
             String[] ids = Utilities.stringToStringArray(getBean().getIds(),",");
             for (String id : ids) {
-                log.debug("processing id - "+ id);
+                log.debug("processing id - "+ stripAll(id));
                 
                 // if we already deleted it then skip forward
                 if(deletes.contains(id)) {
-                    log.debug("Already deleted, skipping - "+id);
+                    log.debug("Already deleted, skipping - "+stripAll(id));
                     continue;
                 }
                 

@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
@@ -101,7 +102,7 @@ public class Trackback {
         
         RollerMessages messages = new RollerMessages();
         
-        LOG.debug("Sending trackback to url - " + trackbackURL);
+        LOG.debug("Sending trackback to url - " + stripAll(trackbackURL));
         
         // Construct data
         String title = entry.getTitle();
@@ -117,7 +118,7 @@ public class Trackback {
                                             "blog_name", URLUtilities.encode(blog_name));
         String queryString = URLUtilities.getQueryString(params);
         
-        LOG.debug("query string - " + queryString);
+        LOG.debug("query string - " + stripAll(queryString));
         
         // prepare http request
         HttpClient client = new HttpClient();

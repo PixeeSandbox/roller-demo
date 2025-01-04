@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.core;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -73,7 +74,7 @@ public class MainMenu extends UIAction {
             WebloggerFactory.getWeblogger().flush();
 
         } catch (WebloggerException ex) {
-            log.error("Error handling invitation accept weblog id - "+getInviteId(), ex);
+            log.error("Error handling invitation accept weblog id - "+stripAll(getInviteId()), ex);
             addError("yourWebsites.permNotFound");
         }
         
@@ -95,7 +96,7 @@ public class MainMenu extends UIAction {
             addMessage("yourWebsites.declined", handle);
 
         } catch (WebloggerException ex) {
-            log.error("Error handling invitation decline weblog id - "+getInviteId(), ex);
+            log.error("Error handling invitation decline weblog id - "+stripAll(getInviteId()), ex);
             addError("yourWebsites.permNotFound");
         }
         
