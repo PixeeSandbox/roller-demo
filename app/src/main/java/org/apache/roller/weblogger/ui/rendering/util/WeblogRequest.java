@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +73,7 @@ public class WeblogRequest extends ParsedRequest {
         
         String path = request.getPathInfo();
         
-        log.debug("parsing path "+path);
+        log.debug("parsing path "+stripAll(path));
         
         // first, cleanup extra slashes and extract the weblog weblogHandle
         if(path != null && path.trim().length() > 1) {
@@ -119,9 +120,9 @@ public class WeblogRequest extends ParsedRequest {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("handle = "+this.weblogHandle);
-            log.debug("locale = "+this.locale);
-            log.debug("pathInfo = "+this.pathInfo);
+            log.debug("handle = "+stripAll(this.weblogHandle));
+            log.debug("locale = "+stripAll(this.locale));
+            log.debug("pathInfo = "+stripAll(this.pathInfo));
         }
     }
     
@@ -188,7 +189,7 @@ public class WeblogRequest extends ParsedRequest {
                 weblog = WebloggerFactory.getWeblogger().getWeblogManager()
                         .getWeblogByHandle(weblogHandle, Boolean.TRUE);
             } catch (WebloggerException ex) {
-                log.error("Error looking up weblog "+weblogHandle, ex);
+                log.error("Error looking up weblog "+stripAll(weblogHandle), ex);
             }
         }
         

@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,7 +55,7 @@ public class WeblogResourceRequest extends WeblogRequest {
         String pathInfo = this.getPathInfo();
         
         // parse the request object and figure out what we've got
-        log.debug("parsing path "+pathInfo);
+        log.debug("parsing path "+stripAll(pathInfo));
                 
         
         /* 
@@ -84,7 +85,7 @@ public class WeblogResourceRequest extends WeblogRequest {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("resourcePath = "+this.resourcePath);
+            log.debug("resourcePath = "+stripAll(this.resourcePath));
         }
     }
     

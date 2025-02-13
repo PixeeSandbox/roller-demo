@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.core.filters;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
@@ -66,7 +67,7 @@ public class ValidateSaltFilter implements Filter {
                 SaltCache saltCache = SaltCache.getInstance();
                 if (salt == null || !Objects.equals(saltCache.get(salt), userId)) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Valid salt value not found on POST to URL : " + httpReq.getServletPath());
+                        log.debug("Valid salt value not found on POST to URL : " + stripAll(httpReq.getServletPath()));
                     }
                     throw new ServletException("Security Violation");
                 }
@@ -74,7 +75,7 @@ public class ValidateSaltFilter implements Filter {
                 // Remove salt from cache after successful validation
                 saltCache.remove(salt);
                 if (log.isDebugEnabled()) {
-                    log.debug("Salt used and invalidated: " + salt);
+                    log.debug("Salt used and invalidated: " + stripAll(salt));
                 }
             }
         }

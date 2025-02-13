@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -79,7 +80,7 @@ public class WeblogFeedRequest extends WeblogRequest {
         String pathInfo = this.getPathInfo();
         
         // parse the request object and figure out what we've got
-        log.debug("parsing path "+pathInfo);
+        log.debug("parsing path "+stripAll(pathInfo));
         
         // was this request bound for the feed servlet?
         if(servlet == null || !FEED_SERVLET.equals(servlet)) {
@@ -158,9 +159,9 @@ public class WeblogFeedRequest extends WeblogRequest {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("type = "+this.type);
-            log.debug("format = "+this.format);
-            log.debug("weblogCategory = "+this.weblogCategoryName);
+            log.debug("type = "+stripAll(this.type));
+            log.debug("format = "+stripAll(this.format));
+            log.debug("weblogCategory = "+stripAll(this.weblogCategoryName));
             log.debug("tags = "+this.tags);
             log.debug("excerpts = "+this.excerpts);
         }

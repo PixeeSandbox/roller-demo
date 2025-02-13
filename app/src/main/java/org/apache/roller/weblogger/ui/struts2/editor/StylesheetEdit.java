@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.weblogger.WebloggerException;
@@ -86,7 +87,7 @@ public class StylesheetEdit extends UIAction {
             setTemplate(weblogManager.getTemplateByLink(getActionWeblog(), stylesheet.getLink()));
 
         } catch (WebloggerException ex) {
-            log.error("Error looking up stylesheet on weblog - " + getActionWeblog().getHandle(), ex);
+            log.error("Error looking up stylesheet on weblog - " + stripAll(getActionWeblog().getHandle()), ex);
         }
     }
 
@@ -179,7 +180,7 @@ public class StylesheetEdit extends UIAction {
 
         } catch (WebloggerException ex) {
             log.error("Error finding/adding stylesheet template from weblog - "
-                + getActionWeblog().getHandle(), ex);
+                + stripAll(getActionWeblog().getHandle()), ex);
             addError("generic.error.check.logs");
         }
 
@@ -233,7 +234,7 @@ public class StylesheetEdit extends UIAction {
 
             } catch (WebloggerException ex) {
                 log.error("Error updating stylesheet template for weblog - "
-                        + getActionWeblog().getHandle(), ex);
+                        + stripAll(getActionWeblog().getHandle()), ex);
                 addError("Error saving template - check Roller logs");
             }
         }
@@ -291,7 +292,7 @@ public class StylesheetEdit extends UIAction {
                 addMessage("stylesheetEdit.revert.success", stylesheet.getName());
 
             } catch (WebloggerException ex) {
-                log.error("Error updating stylesheet template for weblog - " + getActionWeblog().getHandle(), ex);
+                log.error("Error updating stylesheet template for weblog - " + stripAll(getActionWeblog().getHandle()), ex);
                 addError("generic.error.check.logs");
             }
         }
@@ -327,7 +328,7 @@ public class StylesheetEdit extends UIAction {
                 template = null;
 
             } catch (Exception e) {
-                log.error("Error deleting stylesheet template for weblog - " + getActionWeblog().getHandle(), e);
+                log.error("Error deleting stylesheet template for weblog - " + stripAll(getActionWeblog().getHandle()), e);
                 addError("generic.error.check.logs");
             }
         }

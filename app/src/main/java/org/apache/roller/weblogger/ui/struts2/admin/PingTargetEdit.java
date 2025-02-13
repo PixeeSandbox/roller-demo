@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.admin;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,7 +67,7 @@ public class PingTargetEdit extends UIAction {
             try {
                 pingTarget = pingTargetMgr.getPingTarget(getBean().getId());
             } catch (WebloggerException ex) {
-                log.error("Error looking up ping target - " + getBean().getId());
+                log.error("Error looking up ping target - " + stripAll(getBean().getId()));
             }
             if (pingTarget == null) {
                 addError("pingTarget.notFound", getBean().getId());

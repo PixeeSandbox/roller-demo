@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.core.filters;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -51,9 +52,9 @@ public class RoleAssignmentFilter implements Filter {
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
-        log.debug("Entered "+request.getRequestURI());        
+        log.debug("Entered "+stripAll(request.getRequestURI()));        
         chain.doFilter(new RoleAssignmentRequestWrapper(request), res);
-        log.debug("Exiting "+request.getRequestURI());
+        log.debug("Exiting "+stripAll(request.getRequestURI()));
     }
     
     

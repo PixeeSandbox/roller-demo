@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -258,8 +259,8 @@ public final class EntryEdit extends UIAction {
                 }
 
                 if (log.isDebugEnabled()) {
-                    log.debug("entry bean is ...\n" + getBean().toString());
-                    log.debug("final status = " + weblogEntry.getStatus());
+                    log.debug("entry bean is ...\n" + stripAll(getBean().toString()));
+                    log.debug("final status = " + stripAll(weblogEntry.getStatus()));
                     log.debug("updtime = " + weblogEntry.getUpdateTime());
                     log.debug("pubtime = " + weblogEntry.getPubTime());
                 }

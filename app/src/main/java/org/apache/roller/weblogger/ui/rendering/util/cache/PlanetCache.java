@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util.cache;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -105,9 +106,9 @@ public final class PlanetCache {
         Object entry = contentCache.get(key);
         
         if(entry == null) {
-            log.debug("MISS "+key);
+            log.debug("MISS "+stripAll(key));
         } else {
-            log.debug("HIT "+key);
+            log.debug("HIT "+stripAll(key));
         }
         
         return entry;
@@ -121,7 +122,7 @@ public final class PlanetCache {
         }
         
         contentCache.put(key, value);
-        log.debug("PUT "+key);
+        log.debug("PUT "+stripAll(key));
     }
     
     

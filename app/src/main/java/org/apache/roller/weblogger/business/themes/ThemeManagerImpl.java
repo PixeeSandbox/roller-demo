@@ -17,6 +17,7 @@
  */
 package org.apache.roller.weblogger.business.themes;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -164,7 +165,7 @@ public class ThemeManagerImpl implements ThemeManager {
 			if (staticTheme != null) {
 				weblogTheme = new WeblogSharedTheme(weblog, staticTheme);
 			} else {
-				log.warn("Unable to lookup theme " + weblog.getEditorTheme());
+				log.warn("Unable to lookup theme " + stripAll(weblog.getEditorTheme()));
 			}
 		}
 
@@ -203,7 +204,7 @@ public class ThemeManagerImpl implements ThemeManager {
 
 		MediaFileDirectory root = fileMgr.getDefaultMediaFileDirectory(weblog);
         if (root == null) {
-            log.warn("Weblog " + weblog.getHandle() + " does not have a root MediaFile directory");
+            log.warn("Weblog " + stripAll(weblog.getHandle()) + " does not have a root MediaFile directory");
         }
 
 		Set<ComponentType> importedActionTemplates = EnumSet.noneOf(ComponentType.class);

@@ -17,6 +17,7 @@
  */
 package org.apache.roller.weblogger.business.jpa;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -176,7 +177,7 @@ public class JPAMediaFileManagerImpl implements MediaFileManager {
             throw new WebloggerException("Directory exists");
         } else {
             newDirectory = new MediaFileDirectory(weblog, requestedName, null);
-            log.debug("Created new Directory " + requestedName);
+            log.debug("Created new Directory " + stripAll(requestedName));
         }
 
         // update weblog last modified date. date updated by saveWeblog()
@@ -369,9 +370,9 @@ public class JPAMediaFileManagerImpl implements MediaFileManager {
 
             } catch (Exception e) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Cannot load thumbnail for image " + id, e);
+                    log.debug("Cannot load thumbnail for image " + stripAll(id), e);
                 } else {
-                    log.warn("Cannot load thumbnail for image " + id);
+                    log.warn("Cannot load thumbnail for image " + stripAll(id));
                 }
             }
         }

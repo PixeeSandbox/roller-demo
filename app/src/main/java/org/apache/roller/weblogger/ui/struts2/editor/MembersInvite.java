@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Collections;
 
 import org.apache.commons.logging.Log;
@@ -94,7 +95,7 @@ public class MembersInvite extends UIAction {
                 addError("inviteMember.error.userNotFound");
             }
         } catch(WebloggerException ex) {
-            log.error("Error looking up user by id - "+getUserName(), ex);
+            log.error("Error looking up user by id - "+stripAll(getUserName()), ex);
             addError("Error looking up invitee");
         }
         
@@ -114,7 +115,7 @@ public class MembersInvite extends UIAction {
             }
             
         } catch (WebloggerException ex) {
-            log.error("Error looking up permissions for weblog - "+getActionWeblog().getHandle(), ex);
+            log.error("Error looking up permissions for weblog - "+stripAll(getActionWeblog().getHandle()), ex);
             addError("Error checking existing permissions");
         }
         

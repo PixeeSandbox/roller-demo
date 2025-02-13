@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.weblogger.WebloggerException;
@@ -85,7 +86,7 @@ public class Pings extends UIAction {
             try {
                 setPingTarget(pingTargetMgr.getPingTarget(getPingTargetId()));
             } catch (WebloggerException ex) {
-                log.error("Error looking up ping target - "+getPingTargetId(), ex);
+                log.error("Error looking up ping target - "+stripAll(getPingTargetId()), ex);
             }
         }
         
@@ -93,7 +94,7 @@ public class Pings extends UIAction {
             // load common ping targets list
             setCommonPingTargets(pingTargetMgr.getCommonPingTargets());
         } catch (WebloggerException ex) {
-            log.error("Error loading ping target lists for weblog - "+getActionWeblog().getHandle(), ex);
+            log.error("Error loading ping target lists for weblog - "+stripAll(getActionWeblog().getHandle()), ex);
             addError("Error loading ping targets");
         }
     }
@@ -124,7 +125,7 @@ public class Pings extends UIAction {
                 autoPingMgr.saveAutoPing(autoPing);
                 WebloggerFactory.getWeblogger().flush();
             } catch(Exception ex) {
-                log.error("Error saving auto ping for target - "+getPingTargetId(), ex);
+                log.error("Error saving auto ping for target - "+stripAll(getPingTargetId()), ex);
                 addError("Error enabling auto ping");
             }
         }
@@ -144,7 +145,7 @@ public class Pings extends UIAction {
                 autoPingMgr.removeAutoPing(getPingTarget(), getActionWeblog());
                 WebloggerFactory.getWeblogger().flush();
             } catch (Exception ex) {
-                log.error("Error removing auto ping for target - "+getPingTargetId(), ex);
+                log.error("Error removing auto ping for target - "+stripAll(getPingTargetId()), ex);
                 addError("Error disabling auto ping");
             }
         }
@@ -217,7 +218,7 @@ public class Pings extends UIAction {
         try {
             autoPings = autoPingMgr.getAutoPingsByWebsite(getActionWeblog());
         } catch (WebloggerException ex) {
-            log.error("Error looking up auto pings for weblog - "+getActionWeblog().getHandle(), ex);
+            log.error("Error looking up auto pings for weblog - "+stripAll(getActionWeblog().getHandle()), ex);
         }
         
         // Add the enabled auto ping configs with TRUE

@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -122,7 +123,7 @@ public class Templates extends UIAction {
 
         } catch (WebloggerException ex) {
             log.error("Error getting templates for weblog - "
-                + getActionWeblog().getHandle(), ex);
+                + stripAll(getActionWeblog().getHandle()), ex);
             addError("Error getting template list - check Roller logs");
         }
 
@@ -195,7 +196,7 @@ public class Templates extends UIAction {
                 setNewTmplAction(null);
 
             } catch (WebloggerException ex) {
-                log.error("Error adding new template for weblog - " + getActionWeblog().getHandle(), ex);
+                log.error("Error adding new template for weblog - " + stripAll(getActionWeblog().getHandle()), ex);
                 addError("Error adding new template - check Roller logs");
             }
         }
@@ -253,7 +254,7 @@ public class Templates extends UIAction {
                 }
 
             } catch (Exception ex) {
-                log.error("Error removing page - " + getRemoveId(), ex);
+                log.error("Error removing page - " + stripAll(getRemoveId()), ex);
                 addError("editPages.remove.error");
             }
         } else {

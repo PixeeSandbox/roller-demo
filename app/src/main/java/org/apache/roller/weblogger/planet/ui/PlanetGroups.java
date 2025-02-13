@@ -16,6 +16,7 @@
 
 package org.apache.roller.weblogger.planet.ui;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.planet.business.PlanetManager;
@@ -79,7 +80,7 @@ public class PlanetGroups extends PlanetUIAction  implements ServletRequestAware
                 setGroup(null);
 
             } catch (Exception ex) {
-                log.error("Error deleting planet group - " + getGroup().getId());
+                log.error("Error deleting planet group - " + stripAll(getGroup().getId()));
                 addError("Error deleting planet group");
             }
         }

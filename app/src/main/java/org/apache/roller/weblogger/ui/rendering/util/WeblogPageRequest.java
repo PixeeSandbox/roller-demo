@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Collections;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -90,7 +91,7 @@ public class WeblogPageRequest extends WeblogRequest {
         String pathInfo = this.getPathInfo();
 
         // parse the request object and figure out what we've got
-        log.debug("parsing path " + pathInfo);
+        log.debug("parsing path " + stripAll(pathInfo));
 
         // was this request bound for the right servlet?
         if (!isValidDestination(servlet)) {
@@ -257,12 +258,12 @@ public class WeblogPageRequest extends WeblogRequest {
         customParams.remove("tags");
 
         if (log.isDebugEnabled()) {
-            log.debug("context = " + this.context);
-            log.debug("weblogAnchor = " + this.weblogAnchor);
-            log.debug("weblogDate = " + this.weblogDate);
-            log.debug("weblogCategory = " + this.weblogCategoryName);
+            log.debug("context = " + stripAll(this.context));
+            log.debug("weblogAnchor = " + stripAll(this.weblogAnchor));
+            log.debug("weblogDate = " + stripAll(this.weblogDate));
+            log.debug("weblogCategory = " + stripAll(this.weblogCategoryName));
             log.debug("tags = " + this.tags);
-            log.debug("weblogPage = " + this.weblogPageName);
+            log.debug("weblogPage = " + stripAll(this.weblogPageName));
             log.debug("pageNum = " + this.pageNum);
         }
     }

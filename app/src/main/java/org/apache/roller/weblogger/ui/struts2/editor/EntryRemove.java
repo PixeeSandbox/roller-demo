@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.weblogger.WebloggerException;
@@ -61,7 +62,7 @@ public class EntryRemove extends UIAction {
                         .getWeblogEntryManager();
                 setRemoveEntry(wmgr.getWeblogEntry(getRemoveId()));
             } catch (WebloggerException ex) {
-                log.error("Error looking up entry by id - " + getRemoveId(), ex);
+                log.error("Error looking up entry by id - " + stripAll(getRemoveId()), ex);
             }
         }
     }
@@ -109,7 +110,7 @@ public class EntryRemove extends UIAction {
                 return SUCCESS;
 
             } catch (Exception e) {
-                log.error("Error removing entry " + getRemoveId(), e);
+                log.error("Error removing entry " + stripAll(getRemoveId()), e);
                 addError("generic.error.check.logs");
             }
         } else {

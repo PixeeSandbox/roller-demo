@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.core.filters;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -51,7 +52,7 @@ public class BootstrapFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         
-        log.debug("Entered "+request.getRequestURI());
+        log.debug("Entered "+stripAll(request.getRequestURI()));
         
         if ("auto".equals(WebloggerConfig.getProperty("installation.type"))
                 && !WebloggerFactory.isBootstrapped() 
@@ -68,7 +69,7 @@ public class BootstrapFilter implements Filter {
             chain.doFilter(request, response);
         }
         
-        log.debug("Exiting "+request.getRequestURI());
+        log.debug("Exiting "+stripAll(request.getRequestURI()));
     }
     
     

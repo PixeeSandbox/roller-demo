@@ -26,6 +26,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
+import static io.github.pixee.security.Newlines.stripAll;
 
 import java.io.IOException;
 import java.net.URI;
@@ -87,7 +88,7 @@ public class RomeFeedFetcher implements FeedFetcher {
         }
         
         // fetch the feed
-        log.debug("Fetching feed: "+feedURL);
+        log.debug("Fetching feed: "+stripAll(feedURL));
         SyndFeed feed;
         try {
             feed = fetchFeed(feedURL);
@@ -123,7 +124,7 @@ public class RomeFeedFetcher implements FeedFetcher {
         }
         
         if(log.isDebugEnabled()) {
-            log.debug("Subscription is: " + newSub.toString());
+            log.debug("Subscription is: " + stripAll(newSub.toString()));
         }
         
         
@@ -145,7 +146,7 @@ public class RomeFeedFetcher implements FeedFetcher {
             
             // some kludge to handle feeds with no entry dates
             if (newEntry.getPubTime() == null) {
-                log.debug("No published date, assigning fake date for "+feedURL);
+                log.debug("No published date, assigning fake date for "+stripAll(feedURL));
                 newEntry.setPubTime(new Timestamp(cal.getTimeInMillis()));
                 cal.add(Calendar.DATE, -1);
             }

@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -132,7 +133,7 @@ public class Bookmarks extends UIAction {
                 }
                 for (int j = 0; j < bookmarks.length; j++) {
                     if (log.isDebugEnabled()) {
-                        log.debug("Deleting bookmark - " + bookmarks[j]);
+                        log.debug("Deleting bookmark - " + stripAll(bookmarks[j]));
                     }
                     bookmark = bmgr.getBookmark(bookmarks[j]);
                     if (bookmark != null) {
@@ -221,7 +222,7 @@ public class Bookmarks extends UIAction {
             BookmarkManager bmgr = WebloggerFactory.getWeblogger().getBookmarkManager();
 
             if (log.isDebugEnabled()) {
-                log.debug("Moving bookmarks to folder - " + getTargetFolderId());
+                log.debug("Moving bookmarks to folder - " + stripAll(getTargetFolderId()));
             }
 
             // Move bookmarks to new parent folder.

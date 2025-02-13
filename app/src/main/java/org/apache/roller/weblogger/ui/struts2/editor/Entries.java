@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -80,7 +81,7 @@ public class Entries extends UIAction {
     public String execute() {
         
         if (log.isDebugEnabled()) {
-            log.debug("entries bean is ...\n"+getBean().toString());
+            log.debug("entries bean is ...\n"+stripAll(getBean().toString()));
         }
         
         List<WeblogEntry> entries = null;
@@ -176,7 +177,7 @@ public class Entries extends UIAction {
             WeblogEntryManager wmgr = WebloggerFactory.getWeblogger().getWeblogEntryManager();
             weblogCats = wmgr.getWeblogCategories(getActionWeblog());
         } catch (WebloggerException ex) {
-            log.error("Error getting category list for weblog - " + getWeblog(), ex);
+            log.error("Error getting category list for weblog - " + stripAll(getWeblog()), ex);
         }
         
         cats.addAll(weblogCats);

@@ -17,6 +17,7 @@
  */
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -139,7 +140,7 @@ public class MediaFileView extends MediaFileBase {
         } else {
             try {
 
-                log.debug("Creating new directory - " + this.newDirectoryName);
+                log.debug("Creating new directory - " + stripAll(this.newDirectoryName));
                 MediaFileManager manager = WebloggerFactory.getWeblogger()
                         .getMediaFileManager();
 

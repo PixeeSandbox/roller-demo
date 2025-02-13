@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.servlets;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Iterator;
@@ -222,7 +223,7 @@ public class CommentServlet extends HttpServlet {
             return;
         }
 
-        log.debug("Doing comment posting for entry = " + entry.getPermalink());
+        log.debug("Doing comment posting for entry = " + stripAll(entry.getPermalink()));
 
         // collect input from request params and construct new comment object
         // fields: name, email, url, content, notify

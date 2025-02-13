@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.pojos;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.Serializable;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -247,7 +248,7 @@ public class WeblogEntry implements Serializable {
         try {
             return WebloggerFactory.getWeblogger().getUserManager().getUserByUserName(getCreatorUserName());
         } catch (Exception e) {
-            mLogger.error("ERROR fetching user object for username: " + getCreatorUserName(), e);
+            mLogger.error("ERROR fetching user object for username: " + stripAll(getCreatorUserName()), e);
         }
         return null;
     }   

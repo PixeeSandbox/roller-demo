@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.core.filters;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.io.IOException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -51,7 +52,7 @@ public class DebugFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         
-        log.info("ENTERING "+request.getRequestURL());
+        log.info("ENTERING "+stripAll(request.getRequestURL()));
         
         // some info about the request and response
         log.info("Response Object:");
@@ -61,7 +62,7 @@ public class DebugFilter implements Filter {
         
         chain.doFilter(request, response);
         
-        log.info("EXITING "+request.getRequestURL());
+        log.info("EXITING "+stripAll(request.getRequestURL()));
         
         // some info about the request and response
         log.info("Response Object:");

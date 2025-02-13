@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.struts2.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.weblogger.business.UserManager;
@@ -91,9 +92,9 @@ public class UISecurityInterceptor extends MethodFilterInterceptor {
                             .getActionWeblog();
                     if (actionWeblog == null) {
                         if (log.isWarnEnabled()) {
-                            log.warn(String.format("User %s unable to process action %s " +
+                            log.warn(stripAll(String.format("User %s unable to process action %s " +
                                     "because no weblog was defined (Check JSP form provides weblog value).",
-                                authenticatedUser.getUserName(), ((UIAction) theAction).getActionName()));
+                                authenticatedUser.getUserName(), ((UIAction) theAction).getActionName())));
                         }
                         return UIAction.DENIED;
                     }

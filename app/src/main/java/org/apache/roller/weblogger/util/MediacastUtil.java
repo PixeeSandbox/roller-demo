@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -72,11 +73,11 @@ public final class MediacastUtil {
                 }
                 
                 resource = new MediacastResource(url, contentType, length);
-                LOG.debug("Valid mediacast resource = " + resource.toString());
+                LOG.debug("Valid mediacast resource = " + stripAll(resource.toString()));
                 
             }
         } catch (MalformedURLException mfue) {
-            LOG.debug("Malformed MediaCast url: " + url);
+            LOG.debug("Malformed MediaCast url: " + stripAll(url));
             throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", mfue);
         } catch (Exception e) {
             LOG.error("ERROR while checking MediaCast URL: " + url + ": " + e.getMessage());

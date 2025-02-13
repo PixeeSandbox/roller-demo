@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.ui.rendering.util;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -104,7 +105,7 @@ public final class ModDateHeaderUtil {
 				&& lastModifiedTimeMillis <= sinceDate) {
 
 			if (log.isDebugEnabled()) {
-				log.debug("NOT MODIFIED " + request.getRequestURL());
+				log.debug("NOT MODIFIED " + stripAll(request.getRequestURL()));
             }
 
 			response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);

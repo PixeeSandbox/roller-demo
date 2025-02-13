@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.util.cache;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -197,7 +198,7 @@ public final class CacheManager {
     
     public static void invalidate(WeblogEntry entry) {
         
-        log.debug("invalidating entry = "+entry.getAnchor());
+        log.debug("invalidating entry = "+stripAll(entry.getAnchor()));
         for (CacheHandler handler : cacheHandlers) {
             handler.invalidate(entry);
         }
@@ -206,7 +207,7 @@ public final class CacheManager {
     
     public static void invalidate(Weblog website) {
         
-        log.debug("invalidating website = "+website.getHandle());
+        log.debug("invalidating website = "+stripAll(website.getHandle()));
         for (CacheHandler handler : cacheHandlers) {
             handler.invalidate(website);
         }
@@ -251,7 +252,7 @@ public final class CacheManager {
     
     public static void invalidate(WeblogCategory category) {
         
-        log.debug("invalidating category = " + category.getId());
+        log.debug("invalidating category = " + stripAll(category.getId()));
         for (CacheHandler handler : cacheHandlers) {
             handler.invalidate(category);
         }
@@ -259,7 +260,7 @@ public final class CacheManager {
     
     
     public static void invalidate(WeblogTemplate template) {
-        log.debug("invalidating template = " + template.getId());
+        log.debug("invalidating template = " + stripAll(template.getId()));
         for (CacheHandler handler : cacheHandlers) {
             handler.invalidate(template);
         }

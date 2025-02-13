@@ -18,6 +18,7 @@
 
 package org.apache.roller.weblogger.planet.business;
 
+import static io.github.pixee.security.Newlines.stripAll;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class WebloggerRomeFeedFetcher extends RomeFeedFetcher {
         // we handle special weblogger planet integrated subscriptions which have
         // feedURLs defined as ... weblogger:<blog handle>
         if(!feedURL.startsWith("weblogger:")) {
-            log.debug("Feed is remote, letting parent handle it - "+feedURL);            
+            log.debug("Feed is remote, letting parent handle it - "+stripAll(feedURL));            
             return super.fetchSubscription(feedURL, lastModified);
         }
         
@@ -81,7 +82,7 @@ public class WebloggerRomeFeedFetcher extends RomeFeedFetcher {
             weblogHandle = items[1];
         }
         
-        log.debug("Handling LOCAL feed - "+feedURL);
+        log.debug("Handling LOCAL feed - "+stripAll(feedURL));
         
         Weblog localWeblog;
         try {
