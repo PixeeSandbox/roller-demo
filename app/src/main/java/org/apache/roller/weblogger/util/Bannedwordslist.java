@@ -435,7 +435,7 @@ public final class Bannedwordslist {
                 continue;
             }
             if (token.startsWith("(")) {
-                regexRules.add(Pattern.compile(token));
+                regexRules.add(Pattern.compile(Pattern.quote(token)));
             } else {
                 stringRules.add(token);
             }

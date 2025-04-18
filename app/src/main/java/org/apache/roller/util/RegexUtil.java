@@ -46,7 +46,7 @@ public final class RegexUtil {
             String email = mailtoMatch.group(1);
             //System.out.println("email=" + email);
             String hexed = encode(email);
-            str = str.replaceFirst("mailto:"+email, "mailto:"+hexed);
+            str = str.replaceFirst(Pattern.quote("mailto:"+email), "mailto:"+hexed);
         }
         
         return obfuscateEmail(str);
@@ -63,12 +63,12 @@ public final class RegexUtil {
         while (emailMatch.find()) {
             String at = emailMatch.group(1);
             //System.out.println("at=" + at);
-            str = str.replaceFirst(at, "-AT-");
+            str = str.replaceFirst(Pattern.quote(at), "-AT-");
             
             String dot = emailMatch.group(2) + emailMatch.group(3) + emailMatch.group(4);
             String newDot = emailMatch.group(2) + "-DOT-" + emailMatch.group(4);
             //System.out.println("dot=" + dot);
-            str = str.replaceFirst(dot, newDot);
+            str = str.replaceFirst(Pattern.quote(dot), newDot);
         }
         return str;
     }
