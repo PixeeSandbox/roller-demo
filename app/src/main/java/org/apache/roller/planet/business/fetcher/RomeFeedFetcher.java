@@ -86,6 +86,15 @@ public class RomeFeedFetcher implements FeedFetcher {
             throw new IllegalArgumentException("feed url cannot be null");
         }
         
+        try {
+            URI uri = new URI(feedURL);
+            if (!uri.isAbsolute() || uri.getHost() == null) {
+                throw new FetcherException("Invalid URL - " + feedURL);
+            }
+        } catch (Exception e) {
+            throw new FetcherException("Invalid URL format - " + feedURL, e);
+        }
+
         // fetch the feed
         log.debug("Fetching feed: "+feedURL);
         SyndFeed feed;
@@ -226,8 +235,11 @@ public class RomeFeedFetcher implements FeedFetcher {
     }
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
-        
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI uri = URI.create(url);
+        if (!"REPLACE_WITH_ALLOWED_HOST".equalsIgnoreCase(uri.getHost())) {
+            throw new IllegalArgumentException("Invalid host");
+        }
+        HttpRequest request = requestBuilder.copy().uri(uri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
