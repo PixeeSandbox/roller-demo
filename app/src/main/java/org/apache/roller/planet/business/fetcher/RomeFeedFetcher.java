@@ -85,6 +85,9 @@ public class RomeFeedFetcher implements FeedFetcher {
         if(feedURL == null) {
             throw new IllegalArgumentException("feed url cannot be null");
         }
+        if (!feedURL.startsWith("http://lgtm.com") && !feedURL.startsWith("https://lgtm.com")) { 
+            throw new FetcherException("Feed URL is not allowed", null); 
+        }
         
         // fetch the feed
         log.debug("Fetching feed: "+feedURL);
