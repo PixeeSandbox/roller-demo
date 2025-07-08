@@ -86,6 +86,12 @@ public class RomeFeedFetcher implements FeedFetcher {
             throw new IllegalArgumentException("feed url cannot be null");
         }
         
+        // Validate the feed URL to prevent SSRF attacks. Replace 'http://trusted.com' with your allowed URL prefix or perform a proper whitelist check
+        final String ALLOWED_PREFIX = "http://trusted.com"; // FIXME: update placeholder with actual authorized URL prefix
+        if (!feedURL.startsWith(ALLOWED_PREFIX)) {
+            throw new FetcherException("Unauthorized feed URL: " + feedURL);
+        }
+
         // fetch the feed
         log.debug("Fetching feed: "+feedURL);
         SyndFeed feed;
