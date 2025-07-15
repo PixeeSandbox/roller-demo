@@ -1,6 +1,6 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- *  contributor license agreements.  The ASF licenses this file to You
+ * contributor license agreements.  The ASF licenses this file to You
  * under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  * limitations under the License.  For additional information regarding
  * copyright in this work, please see the NOTICE file in the top level
  * directory of this distribution.
+
+private static final String ALLOWED_FEED_URL = "http://lgtm.com";
  */
 
 package org.apache.roller.planet.business.fetcher;
@@ -82,6 +84,9 @@ public class RomeFeedFetcher implements FeedFetcher {
     @Override
     public Subscription fetchSubscription(String feedURL, Date lastModified) throws FetcherException {
 
+        if (!ALLOWED_FEED_URL.equals(feedURL)) {
+            throw new FetcherException("Unauthorized feed URL: " + feedURL);
+        }
         if(feedURL == null) {
             throw new IllegalArgumentException("feed url cannot be null");
         }
