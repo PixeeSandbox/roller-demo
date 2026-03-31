@@ -21,6 +21,7 @@ package org.apache.roller.weblogger.util;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.MalformedURLException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -50,6 +51,15 @@ public final class MediacastUtil {
         
         if(url == null || url.isBlank()) {
             return null;
+        }
+        try {
+            URL parsedUrl = new URL(url);
+            String host = parsedUrl.getHost();
+            if (!"allowed.example.com".equals(host)) {
+                throw new MediacastException(BAD_RESPONSE, "weblogEdit.unauthorizedHost");
+            }
+        } catch(MalformedURLException e) {
+            throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", e);
         }
         
         MediacastResource resource = null;
