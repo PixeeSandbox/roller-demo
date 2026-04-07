@@ -67,6 +67,12 @@ limitations under the License.
 
     <dependencies>
 
+        <dependency>
+            <groupId>io.github.pixee</groupId>
+            <artifactId>java-security-toolkit</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
         <!-- Java EE deps -->
 
         <dependency>
