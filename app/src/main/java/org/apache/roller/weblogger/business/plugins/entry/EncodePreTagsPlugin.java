@@ -35,7 +35,7 @@ public class EncodePreTagsPlugin implements WeblogEntryPlugin {
     private static final String LT = "&lt;"; // '<'
 
     private static final Pattern PRE_PATTERN = Pattern.compile(
-            "<pre\\s*[^>]*>" + "(.*?)" + "</pre\\s*>", MULTILINE | DOTALL | CASE_INSENSITIVE);
+            "<pre\\s*[^>]*>" + "(.{0,1000}?)" + "</pre\\s*>" /* TODO(developer): Replace \"1000\" with the appropriate maximum character limit */, MULTILINE | DOTALL | CASE_INSENSITIVE);
     
     private static final Pattern CODE_PATTERN = Pattern.compile(
             "<code\\s*.[^>]*>" + "(.*?)" + "</code\\s*>", MULTILINE | DOTALL | CASE_INSENSITIVE);
