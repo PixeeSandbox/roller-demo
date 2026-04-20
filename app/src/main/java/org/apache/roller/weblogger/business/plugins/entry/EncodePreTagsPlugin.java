@@ -32,7 +32,7 @@ import static java.util.regex.Pattern.*;
  */
 public class EncodePreTagsPlugin implements WeblogEntryPlugin {
     
-    private static final String LT = "&lt;"; // '<'
+    private static final String LT = "&lt;"; // '<' test
 
     private static final Pattern PRE_PATTERN = Pattern.compile(
             "<pre\\s*[^>]*>" + "(.*?)" + "</pre\\s*>", MULTILINE | DOTALL | CASE_INSENSITIVE);
