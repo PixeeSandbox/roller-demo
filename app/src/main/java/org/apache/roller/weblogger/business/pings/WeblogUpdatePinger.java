@@ -18,6 +18,8 @@
 
 package org.apache.roller.weblogger.business.pings;
 
+import static io.github.pixee.security.Newlines.stripAll;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.weblogger.config.PingConfig;
@@ -111,7 +113,7 @@ public final class WeblogUpdatePinger {
         }
         params.add(websiteUrl);
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Executing ping to '" + pingTargetUrl + "' for website '" + websiteUrl + "' (" + website.getName() + ")" + (variantOptions.isEmpty() ? "" : " with variant options " + variantOptions));
+            LOGGER.debug("Executing ping to '" + stripAll(pingTargetUrl) + "' for website '" + stripAll(websiteUrl) + "' (" + stripAll(website.getName()) + ")" + (variantOptions.isEmpty() ? "" : " with variant options " + variantOptions));
         }
 
         // Send the ping.
