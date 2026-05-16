@@ -88,7 +88,12 @@ class DerbyStartStopper {
         System.out.println("System Info:  " + server.getSysinfo());
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", "APP", "APP");
+        String user = System.getenv("DERBY_DB_USER");
+        String password = System.getenv("DERBY_DB_PASSWORD");
+        if (user == null || user.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            throw new IllegalStateException("DERBY_DB_USER and DERBY_DB_PASSWORD must be set and non-empty");
+        }
+        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", user, password);
 
         // create roller tables
 
@@ -116,7 +121,12 @@ class DerbyStartStopper {
         String driverURL = "jdbc:derby://localhost:" + port + "/rollerdb";
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection(driverURL,"APP", "APP");
+        String user = System.getenv("DERBY_DB_USER");
+        String password = System.getenv("DERBY_DB_PASSWORD");
+        if (user == null || user.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            throw new IllegalStateException("DERBY_DB_USER and DERBY_DB_PASSWORD must be set and non-empty");
+        }
+        Connection conn = DriverManager.getConnection(driverURL, user, password);
 
         // drop Roller tables
         SQLScriptRunner runner = new SQLScriptRunner(
