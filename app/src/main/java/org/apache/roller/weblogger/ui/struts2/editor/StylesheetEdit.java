@@ -18,8 +18,11 @@
 
 package org.apache.roller.weblogger.ui.struts2.editor;
 
+import static io.github.pixee.security.Newlines.stripAll;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.apache.roller.weblogger.WebloggerException;
 import org.apache.roller.weblogger.business.WeblogManager;
 import org.apache.roller.weblogger.business.WebloggerFactory;
@@ -179,7 +182,7 @@ public class StylesheetEdit extends UIAction {
 
         } catch (WebloggerException ex) {
             log.error("Error finding/adding stylesheet template from weblog - "
-                + getActionWeblog().getHandle(), ex);
+                + stripAll(getActionWeblog().getHandle()), ex);
             addError("generic.error.check.logs");
         }
 

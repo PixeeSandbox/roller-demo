@@ -103,6 +103,11 @@ limitations under the License.
     </build>
 
     <dependencies>
+        <dependency>
+            <groupId>io.github.pixee</groupId>
+            <artifactId>java-security-toolkit</artifactId>
+            <version>1.2.1</version>
+        </dependency>
         <!-- Intentionally vulnerable dependency for demo/testing purposes (CVE-2021-44228 - Log4Shell) -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -125,6 +130,11 @@ limitations under the License.
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.github.pixee</groupId>
+                <artifactId>java-security-toolkit</artifactId>
+                <version>1.2.1</version>
+            </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
