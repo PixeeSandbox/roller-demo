@@ -24,6 +24,7 @@ import java.sql.DriverManager;
 
 import org.apache.derby.drda.NetworkServerControl;
 import org.apache.roller.weblogger.business.startup.SQLScriptRunner;
+import org.apache.roller.weblogger.config.WebloggerConfig;
 
 
 public class DerbyManager {
@@ -56,8 +57,10 @@ public class DerbyManager {
                 System.out.println("Runtime Info: " + server.getRuntimeInfo());
 
                 Class.forName("org.apache.derby.jdbc.ClientDriver");
+                String username = WebloggerConfig.getProperty("database.jdbc.username");
+                String password = WebloggerConfig.getProperty("database.jdbc.password");
                 Connection conn = DriverManager.getConnection(
-                    "jdbc:derby://localhost:" + port + "/rollerdb;create=true","APP", "APP");
+                    "jdbc:derby://localhost:" + port + "/rollerdb;create=true", username, password);
 
                 // create roller tables
                 SQLScriptRunner runner1 = new SQLScriptRunner(
@@ -86,7 +89,9 @@ public class DerbyManager {
         try {
                 Class.forName("org.apache.derby.jdbc.ClientDriver");
                 String driverURL = "jdbc:derby://localhost:" + port + "/rollerdb";
-                Connection conn = DriverManager.getConnection(driverURL,"APP", "APP");
+                String username = WebloggerConfig.getProperty("database.jdbc.username");
+                String password = WebloggerConfig.getProperty("database.jdbc.password");
+                Connection conn = DriverManager.getConnection(driverURL, username, password);
 
                 // drop Roller tables
                 SQLScriptRunner runner = new SQLScriptRunner(
