@@ -116,7 +116,24 @@ class DerbyStartStopper {
         String driverURL = "jdbc:derby://localhost:" + port + "/rollerdb";
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection(driverURL,"APP", "APP");
+
+        String username = System.getProperty("derby.username");
+        if (username == null || username.trim().isEmpty()) {
+            username = System.getenv("DERBY_USERNAME");
+        }
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalStateException("Missing Derby username configuration. Set the derby.username system property or DERBY_USERNAME environment variable.");
+        }
+
+        String password = System.getProperty("derby.password");
+        if (password == null || password.trim().isEmpty()) {
+            password = System.getenv("DERBY_PASSWORD");
+        }
+        if (password == null || password.trim().isEmpty()) {
+            throw new IllegalStateException("Missing Derby password configuration. Set the derby.password system property or DERBY_PASSWORD environment variable.");
+        }
+
+        Connection conn = DriverManager.getConnection(driverURL, username, password);
 
         // drop Roller tables
         SQLScriptRunner runner = new SQLScriptRunner(
