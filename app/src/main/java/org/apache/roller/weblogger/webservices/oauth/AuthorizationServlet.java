@@ -152,8 +152,15 @@ public class AuthorizationServlet extends HttpServlet {
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
-            response.setHeader("Location", callback);
+            response.setHeader("Location", sanitizeRedirectLocation(callback));
         }
+    }
+
+    private String sanitizeRedirectLocation(String callback) {
+        if (callback == null) {
+            return null;
+        }
+        return callback.replace("\r", "").replace("\n", "");
     }
 
     public void handleException(Exception e, HttpServletRequest request,
