@@ -28,7 +28,10 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -227,12 +230,45 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI uri;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException ex) {
+            throw new IOException("Invalid feed URL: " + url, ex);
+        }
+        if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new IOException("Invalid feed URL scheme: " + url);
+        }
+        if (uri.getHost() == null) {
+            throw new IOException("Invalid feed URL host: " + url);
+        }
+        if (uri.getUserInfo() != null) {
+            throw new IOException("Invalid feed URL userinfo: " + url);
+        }
+        try {
+            for (InetAddress address : InetAddress.getAllByName(uri.getHost())) {
+                if (isNonPublicAddress(address)) {
+                    throw new IOException("Blocked non-public feed URL: " + url);
+                }
+            }
+        } catch (UnknownHostException ex) {
+            throw new IOException("Unable to resolve feed URL host: " + url, ex);
+        }
+        
+        HttpRequest request = requestBuilder.copy().uri(uri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
         }
        
+    }
+
+    private boolean isNonPublicAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return true;
+        }
+        byte[] rawAddress = address.getAddress();
+        return rawAddress.length == 16 && (rawAddress[0] & (byte) 0xfe) == (byte) 0xfc;
     }
     
 }
