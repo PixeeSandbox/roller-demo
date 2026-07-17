@@ -22,6 +22,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.util.DateUtil;
+import org.apache.roller.weblogger.util.Utilities;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -185,13 +186,13 @@ public class CalendarTag extends TagSupport {
             pw.print("<td colspan=\"7\" align=\"center\" "+
                     "class=\"hCalendarMonthYearRow"+mClassSuffix+"\">");
             if (model.getPrevMonth() != null) {
-                pw.print("<a href=\"" + model.computePrevMonthUrl()
+                pw.print("<a href=\"" + Utilities.escapeHTML(model.computePrevMonthUrl())
                         + "\" title=\"" + bundle.getString("calendar.prev")
                         + "\" class=\"hCalendarNavBar\">&laquo;</a> ");
             }
             pw.print( formatTitle.format(day) );
             if (model.getNextMonth() != null) {
-                pw.print(" <a href=\"" + model.computeNextMonthUrl()
+                pw.print(" <a href=\"" + Utilities.escapeHTML(model.computeNextMonthUrl())
                 + "\" title=\"" + bundle.getString("calendar.next")
                 + "\" class=\"hCalendarNavBar\">&raquo;</a>");
             }
