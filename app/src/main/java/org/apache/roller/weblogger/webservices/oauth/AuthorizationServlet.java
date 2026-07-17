@@ -124,12 +124,12 @@ public class AuthorizationServlet extends HttpServlet {
         throws IOException, ServletException {
 
         // send the user back to site's callBackUrl
-        String callback = request.getParameter("oauth_callback");
+        String callback = validateCallback(request.getParameter("oauth_callback"));
         if ("none".equals(callback)
             && accessor.consumer.callbackURL != null 
                 && accessor.consumer.callbackURL.length() > 0){
             // first check if we have something in our properties file
-            callback = accessor.consumer.callbackURL;
+            callback = validateCallback(accessor.consumer.callbackURL);
         }
         
         if ( "none".equals(callback) ) {
@@ -144,16 +144,23 @@ public class AuthorizationServlet extends HttpServlet {
         } else {
             // if callback is not passed in, use the callback from config
             if(callback == null || callback.length() <=0 ) {
-                callback = accessor.consumer.callbackURL;
+                callback = validateCallback(accessor.consumer.callbackURL);
             }
             String token = accessor.requestToken;
             if (token != null && callback != null) {
-                callback = OAuth.addParameters(callback, "oauth_token", token);
+                callback = validateCallback(OAuth.addParameters(callback, "oauth_token", token));
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private String validateCallback(String callback) throws ServletException {
+        if (callback != null && (callback.indexOf('\r') >= 0 || callback.indexOf('\n') >= 0)) {
+            throw new ServletException("Invalid callback URL");
+        }
+        return callback;
     }
 
     public void handleException(Exception e, HttpServletRequest request,
