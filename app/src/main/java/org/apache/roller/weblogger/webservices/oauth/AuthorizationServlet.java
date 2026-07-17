@@ -146,14 +146,26 @@ public class AuthorizationServlet extends HttpServlet {
             if(callback == null || callback.length() <=0 ) {
                 callback = accessor.consumer.callbackURL;
             }
+            if (!isSafeCallback(callback)) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
             String token = accessor.requestToken;
             if (token != null && callback != null) {
                 callback = OAuth.addParameters(callback, "oauth_token", token);
+            }
+            if (!isSafeCallback(callback)) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private boolean isSafeCallback(String callback) {
+        return callback != null && callback.indexOf('\r') < 0 && callback.indexOf('\n') < 0;
     }
 
     public void handleException(Exception e, HttpServletRequest request,
