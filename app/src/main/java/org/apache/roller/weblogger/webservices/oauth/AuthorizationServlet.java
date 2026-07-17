@@ -124,12 +124,12 @@ public class AuthorizationServlet extends HttpServlet {
         throws IOException, ServletException {
 
         // send the user back to site's callBackUrl
-        String callback = request.getParameter("oauth_callback");
+        String callback = sanitizeCallback(request.getParameter("oauth_callback"));
         if ("none".equals(callback)
             && accessor.consumer.callbackURL != null 
                 && accessor.consumer.callbackURL.length() > 0){
             // first check if we have something in our properties file
-            callback = accessor.consumer.callbackURL;
+            callback = sanitizeCallback(accessor.consumer.callbackURL);
         }
         
         if ( "none".equals(callback) ) {
@@ -144,16 +144,30 @@ public class AuthorizationServlet extends HttpServlet {
         } else {
             // if callback is not passed in, use the callback from config
             if(callback == null || callback.length() <=0 ) {
-                callback = accessor.consumer.callbackURL;
+                callback = sanitizeCallback(accessor.consumer.callbackURL);
             }
             String token = accessor.requestToken;
             if (token != null && callback != null) {
-                callback = OAuth.addParameters(callback, "oauth_token", token);
+                callback = sanitizeCallback(OAuth.addParameters(callback, "oauth_token", token));
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private String sanitizeCallback(String callback) {
+        if (callback == null) {
+            return null;
+        }
+        StringBuilder sanitized = new StringBuilder(callback.length());
+        for (int i = 0; i < callback.length(); i++) {
+            char c = callback.charAt(i);
+            if (c >= 0x20 && c != 0x7f) {
+                sanitized.append(c);
+            }
+        }
+        return sanitized.toString();
     }
 
     public void handleException(Exception e, HttpServletRequest request,
