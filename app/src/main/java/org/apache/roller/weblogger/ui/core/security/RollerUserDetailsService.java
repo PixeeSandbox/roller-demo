@@ -65,7 +65,7 @@ public class RollerUserDetailsService implements UserDetailsService {
                      SimpleGrantedAuthority g = new SimpleGrantedAuthority("rollerOpenidLogin");
                      authorities.add(g);
                      name = "openid";
-                     password = "openid";
+                     password = "";
                 } else {
                      authorities = getAuthorities(userData, umgr);
                      name = userData.getUserName();
