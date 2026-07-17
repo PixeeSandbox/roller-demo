@@ -151,9 +151,28 @@ public class AuthorizationServlet extends HttpServlet {
                 callback = OAuth.addParameters(callback, "oauth_token", token);
             }
 
+            if (!isSafeRedirectLocation(callback)) {
+                throw new ServletException("Invalid redirect URI");
+            }
+
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private boolean isSafeRedirectLocation(String callback) {
+        if (callback == null) {
+            return false;
+        }
+
+        for (int i = 0; i < callback.length(); i++) {
+            char ch = callback.charAt(i);
+            if (ch == '\r' || ch == '\n' || ch < 0x20 || ch == 0x7f) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public void handleException(Exception e, HttpServletRequest request,
