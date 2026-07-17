@@ -146,14 +146,28 @@ public class AuthorizationServlet extends HttpServlet {
             if(callback == null || callback.length() <=0 ) {
                 callback = accessor.consumer.callbackURL;
             }
+            callback = validateCallbackUrl(callback);
             String token = accessor.requestToken;
-            if (token != null && callback != null) {
+            if (token != null) {
                 callback = OAuth.addParameters(callback, "oauth_token", token);
+                callback = validateCallbackUrl(callback);
             }
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private String validateCallbackUrl(String callback) throws ServletException {
+        if (callback == null || callback.length() == 0) {
+            throw new ServletException("Invalid callback URL");
+        }
+        for (int i = 0; i < callback.length(); i++) {
+            if (Character.isISOControl(callback.charAt(i))) {
+                throw new ServletException("Invalid callback URL");
+            }
+        }
+        return callback;
     }
 
     public void handleException(Exception e, HttpServletRequest request,
