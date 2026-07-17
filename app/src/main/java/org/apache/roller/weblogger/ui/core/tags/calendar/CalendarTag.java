@@ -21,6 +21,7 @@ package org.apache.roller.weblogger.ui.core.tags.calendar;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.roller.util.DateUtil;
 
 import java.io.PrintWriter;
@@ -69,6 +70,7 @@ public class CalendarTag extends TagSupport {
     public String getClassSuffix() { return mClassSuffix; }
     public void setClassSuffix( String s ) { mClassSuffix= s; }
     private String mClassSuffix = "";
+    private String escapedClassSuffix = "";
     
     // not a tag attribute
     public void setLocale(Locale locale) {
@@ -153,6 +155,7 @@ public class CalendarTag extends TagSupport {
 
             // get Resource Bundle
             ResourceBundle bundle = ResourceBundle.getBundle("ApplicationResources", mLocale);
+            escapedClassSuffix = StringEscapeUtils.escapeHtml4(mClassSuffix);
 
             // formatter Month-Year title of calendar
             SimpleDateFormat formatTitle = new SimpleDateFormat(bundle.getString("calendar.dateFormat"), mLocale);
@@ -178,21 +181,21 @@ public class CalendarTag extends TagSupport {
             // -------------------------
             pw.print("<table cellspacing=\"0\" border=\"0\" ");
             pw.print(" summary=\""
-                    +bundle.getString("calendar.summary")
+                    +StringEscapeUtils.escapeHtml4(bundle.getString("calendar.summary"))
                     +"\" class=\"hCalendarTable"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print("<tr>");
             pw.print("<td colspan=\"7\" align=\"center\" "+
-                    "class=\"hCalendarMonthYearRow"+mClassSuffix+"\">");
+                    "class=\"hCalendarMonthYearRow"+escapedClassSuffix+"\">");
             if (model.getPrevMonth() != null) {
-                pw.print("<a href=\"" + model.computePrevMonthUrl()
-                        + "\" title=\"" + bundle.getString("calendar.prev")
+                pw.print("<a href=\"" + StringEscapeUtils.escapeHtml4(model.computePrevMonthUrl())
+                        + "\" title=\"" + StringEscapeUtils.escapeHtml4(bundle.getString("calendar.prev"))
                         + "\" class=\"hCalendarNavBar\">&laquo;</a> ");
             }
-            pw.print( formatTitle.format(day) );
+            pw.print( StringEscapeUtils.escapeHtml4(formatTitle.format(day)) );
             if (model.getNextMonth() != null) {
-                pw.print(" <a href=\"" + model.computeNextMonthUrl()
-                + "\" title=\"" + bundle.getString("calendar.next")
+                pw.print(" <a href=\"" + StringEscapeUtils.escapeHtml4(model.computeNextMonthUrl())
+                + "\" title=\"" + StringEscapeUtils.escapeHtml4(bundle.getString("calendar.next"))
                 + "\" class=\"hCalendarNavBar\">&raquo;</a>");
             }
             pw.print("</td></tr>");
@@ -204,8 +207,8 @@ public class CalendarTag extends TagSupport {
                     if ( w == -1 ) {
                         pw.print(
                                 "<th class=\"hCalendarDayNameRow"
-                                +mClassSuffix+"\" align=\"center\">");
-                        pw.print( mDayNames[d] );
+                                +escapedClassSuffix+"\" align=\"center\">");
+                        pw.print( StringEscapeUtils.escapeHtml4(mDayNames[d]) );
                         pw.print("</th>");
                         continue;
                     }
@@ -241,12 +244,12 @@ public class CalendarTag extends TagSupport {
             }
             
             pw.print("<tr class=\"hCalendarNextPrev"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print("<td colspan=\"7\" align=\"center\">");
             
-            pw.print("<a href=\""+model.computeTodayMonthUrl()
+            pw.print("<a href=\""+StringEscapeUtils.escapeHtml4(model.computeTodayMonthUrl())
             +"\" class=\"hCalendarNavBar\">"
-                    +bundle.getString("calendar.today")
+                    +StringEscapeUtils.escapeHtml4(bundle.getString("calendar.today"))
                     +"</a>");
             
             pw.print("</td>");
@@ -263,7 +266,7 @@ public class CalendarTag extends TagSupport {
     }
     
     private void printDayNotInMonth(PrintWriter pw, Calendar cal) {
-        pw.print("<td class=\"hCalendarDayNotInMonth"+mClassSuffix+"\">");
+        pw.print("<td class=\"hCalendarDayNotInMonth"+escapedClassSuffix+"\">");
         //pw.print(cal.get(Calendar.DAY_OF_MONTH));
         pw.print("&nbsp;");
         pw.print("</td>");
@@ -272,23 +275,23 @@ public class CalendarTag extends TagSupport {
     private void printDayInThisMonth(PrintWriter pw, Calendar cal, String url, String content) {
         if ( content!=null ) {
             pw.print("<td class=\"hCalendarDayCurrent"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print( content );
             pw.print("</td>");
         } else if (url!=null) {
             pw.print("<td class=\"hCalendarDayLinked"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print("<div class=\"hCalendarDayTitle"
-                    +mClassSuffix+"\">");
-            pw.print("<a href=\""+url+"\">");
+                    +escapedClassSuffix+"\">");
+            pw.print("<a href=\""+StringEscapeUtils.escapeHtml4(url)+"\">");
             pw.print(cal.get(Calendar.DAY_OF_MONTH));
             pw.print("</a></div>");
             pw.print("</td>");
         } else {
             pw.print("<td class=\"hCalendarDay"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print("<div class=\"hCalendarDayTitle"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print(cal.get(Calendar.DAY_OF_MONTH));
             pw.print("</div>");
             pw.print("</td>");
@@ -298,22 +301,22 @@ public class CalendarTag extends TagSupport {
     private void printToday(PrintWriter pw, Calendar cal, String url, String content) {
         if ( content!=null ) {
             pw.print("<td class=\"hCalendarDayCurrent"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print( content );
             pw.print("</td>");
         } else if (url!=null) {
             pw.print("<td class=\"hCalendarDayCurrent"
-                    +mClassSuffix+"\">");
-            pw.print("<a href=\""+url+"\" "
-                    +"class=\"hCalendarDayTitle"+mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
+            pw.print("<a href=\""+StringEscapeUtils.escapeHtml4(url)+"\" "
+                    +"class=\"hCalendarDayTitle"+escapedClassSuffix+"\">");
             pw.print(cal.get(Calendar.DAY_OF_MONTH));
             pw.print("</a>");
             pw.print("</td>");
         } else {
             pw.print("<td class=\"hCalendarDayCurrent"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print("<div class=\"hCalendarDayTitle"
-                    +mClassSuffix+"\">");
+                    +escapedClassSuffix+"\">");
             pw.print(cal.get(Calendar.DAY_OF_MONTH));
             pw.print("</div></td>");
         }
