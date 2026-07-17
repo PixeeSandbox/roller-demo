@@ -150,10 +150,18 @@ public class AuthorizationServlet extends HttpServlet {
             if (token != null && callback != null) {
                 callback = OAuth.addParameters(callback, "oauth_token", token);
             }
+            callback = sanitizeRedirectLocation(callback);
 
             response.setStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
             response.setHeader("Location", callback);
         }
+    }
+
+    private String sanitizeRedirectLocation(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.replace("\r", "").replace("\n", "");
     }
 
     public void handleException(Exception e, HttpServletRequest request,
