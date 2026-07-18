@@ -68,7 +68,7 @@ public final class RegexUtil {
             String dot = emailMatch.group(2) + emailMatch.group(3) + emailMatch.group(4);
             String newDot = emailMatch.group(2) + "-DOT-" + emailMatch.group(4);
             //System.out.println("dot=" + dot);
-            str = str.replaceFirst(dot, newDot);
+            str = str.replaceFirst(Pattern.quote(dot), Matcher.quoteReplacement(newDot));
         }
         return str;
     }
