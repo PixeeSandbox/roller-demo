@@ -21,8 +21,11 @@ package org.apache.roller.weblogger.util;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.roller.weblogger.config.WebloggerConfig;
 
 
 /**
@@ -53,8 +56,41 @@ public final class MediacastUtil {
         }
         
         MediacastResource resource = null;
+        String allowedURLs = WebloggerConfig.getProperty("mediacast.allowedURLs");
+        if(allowedURLs == null || allowedURLs.isBlank()) {
+            LOG.debug("Mediacast URL not allowed because no allowlist is configured: " + url);
+            throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed");
+        }
+        
         try {
-            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+            URL targetUrl = new URL(url);
+            String protocol = targetUrl.getProtocol();
+            String host = targetUrl.getHost();
+            if(protocol == null || (!"http".equalsIgnoreCase(protocol) && !"https".equalsIgnoreCase(protocol)) || host == null || host.isBlank()) {
+                LOG.debug("Mediacast URL rejected due to invalid scheme or host: " + url);
+                throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed");
+            }
+            
+            boolean allowMediacast = false;
+            String[] splitURLs = allowedURLs.split("\\|\\|");
+            for (int i = 0; i < splitURLs.length; i++) {
+                String allowedURL = splitURLs[i].trim();
+                if(allowedURL.isBlank()) {
+                    continue;
+                }
+                Matcher m = Pattern.compile(allowedURL).matcher(url);
+                if (m.matches()) {
+                    allowMediacast = true;
+                    break;
+                }
+            }
+            
+            if(!allowMediacast) {
+                LOG.debug("Mediacast URL not allowed by configuration: " + url);
+                throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed");
+            }
+            
+            HttpURLConnection con = (HttpURLConnection) targetUrl.openConnection();
             con.setRequestMethod("HEAD");
             int response = con.getResponseCode();
             String message = con.getResponseMessage();
@@ -75,6 +111,8 @@ public final class MediacastUtil {
                 LOG.debug("Valid mediacast resource = " + resource.toString());
                 
             }
+        } catch (MediacastException me) {
+            throw me;
         } catch (MalformedURLException mfue) {
             LOG.debug("Malformed MediaCast url: " + url);
             throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", mfue);
