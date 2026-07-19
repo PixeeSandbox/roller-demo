@@ -55,6 +55,12 @@ public class DerbyJunitExtension implements BeforeAllCallback, AfterAllCallback 
 
 
 class DerbyStartStopper {
+    // TODO(developer): Replace these Derby test credential property and environment variable names with the values used by your test environment.
+    private static final String DERBY_USERNAME_PROPERTY = "roller.test.derby.username";
+    private static final String DERBY_PASSWORD_PROPERTY = "roller.test.derby.password";
+    private static final String DERBY_USERNAME_ENV = "ROLLER_TEST_DERBY_USERNAME";
+    private static final String DERBY_PASSWORD_ENV = "ROLLER_TEST_DERBY_PASSWORD";
+
     private String databaseDir;
     private String databaseScriptsDir;
     private String port;
@@ -64,6 +70,18 @@ class DerbyStartStopper {
         this.databaseDir = databaseDir;
         this.databaseScriptsDir = databaseScriptsDir;
         this.port = port;
+    }
+
+    private String getRequiredCredential(String propertyName, String envName, String credentialName) {
+        String value = System.getProperty(propertyName);
+        if (value == null || value.trim().isEmpty()) {
+            value = System.getenv(envName);
+        }
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalStateException("Missing Derby test " + credentialName
+                + "; set system property '" + propertyName + "' or environment variable '" + envName + "'.");
+        }
+        return value;
     }
 
     public void start() throws Exception {
@@ -88,7 +106,9 @@ class DerbyStartStopper {
         System.out.println("System Info:  " + server.getSysinfo());
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", "APP", "APP");
+        String derbyUsername = getRequiredCredential(DERBY_USERNAME_PROPERTY, DERBY_USERNAME_ENV, "username");
+        String derbyPassword = getRequiredCredential(DERBY_PASSWORD_PROPERTY, DERBY_PASSWORD_ENV, "password");
+        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", derbyUsername, derbyPassword);
 
         // create roller tables
 
@@ -116,7 +136,9 @@ class DerbyStartStopper {
         String driverURL = "jdbc:derby://localhost:" + port + "/rollerdb";
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection(driverURL,"APP", "APP");
+        String derbyUsername = getRequiredCredential(DERBY_USERNAME_PROPERTY, DERBY_USERNAME_ENV, "username");
+        String derbyPassword = getRequiredCredential(DERBY_PASSWORD_PROPERTY, DERBY_PASSWORD_ENV, "password");
+        Connection conn = DriverManager.getConnection(driverURL, derbyUsername, derbyPassword);
 
         // drop Roller tables
         SQLScriptRunner runner = new SQLScriptRunner(
