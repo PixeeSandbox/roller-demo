@@ -88,7 +88,9 @@ class DerbyStartStopper {
         System.out.println("System Info:  " + server.getSysinfo());
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", "APP", "APP");
+        String derbyUsername = requireDerbyCredential("derby.username", "DERBY_USERNAME", "username");
+        String derbyPassword = requireDerbyCredential("derby.password", "DERBY_PASSWORD", "password");
+        Connection conn = DriverManager.getConnection("jdbc:derby:rollerdb;create=true", derbyUsername, derbyPassword);
 
         // create roller tables
 
@@ -111,12 +113,25 @@ class DerbyStartStopper {
         }
     }
 
+    private String requireDerbyCredential(String systemPropertyName, String envName, String credentialName) {
+        String value = System.getProperty(systemPropertyName);
+        if (value == null || value.trim().isEmpty()) {
+            value = System.getenv(envName);
+        }
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalStateException("The test harness must provide Derby credentials externally: missing Derby " + credentialName + ".");
+        }
+        return value;
+    }
+
     public void stop() throws Exception {
 
         String driverURL = "jdbc:derby://localhost:" + port + "/rollerdb";
 
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection(driverURL,"APP", "APP");
+        String derbyUsername = requireDerbyCredential("derby.username", "DERBY_USERNAME", "username");
+        String derbyPassword = requireDerbyCredential("derby.password", "DERBY_PASSWORD", "password");
+        Connection conn = DriverManager.getConnection(driverURL, derbyUsername, derbyPassword);
 
         // drop Roller tables
         SQLScriptRunner runner = new SQLScriptRunner(
