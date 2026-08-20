@@ -31,6 +31,8 @@ import org.apache.roller.weblogger.pojos.GlobalPermission;
 import org.apache.struts2.interceptor.ServletRequestAware;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 
@@ -177,15 +179,16 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
         if (!hasActionErrors()) {
             try {
                 PlanetManager pmgr = WebloggerFactory.getWeblogger().getPlanetManager();
+                String subUrl = getSubUrl();
 
                 // check if this subscription already exists before adding it
-                Subscription sub = pmgr.getSubscription(getSubUrl());
+                Subscription sub = pmgr.getSubscription(subUrl);
                 if (sub == null) {
-                    log.debug("Adding New Subscription - " + getSubUrl());
+                    log.debug("Adding New Subscription - " + subUrl);
 
                     // sub doesn't exist yet, so we need to fetch it
                     FeedFetcher fetcher = WebloggerFactory.getWeblogger().getFeedFetcher();
-                    sub = fetcher.fetchSubscription(getSubUrl());
+                    sub = fetcher.fetchSubscription(subUrl);
 
                     // save new sub
                     pmgr.saveSubscription(sub);
@@ -261,7 +264,20 @@ public class PlanetGroupSubs extends PlanetUIAction implements ServletRequestAwa
      */
     private void valudateNewSub() {
 
-        if (StringUtils.isEmpty(getSubUrl())) {
+        String subUrl = getSubUrl();
+        if (StringUtils.isEmpty(subUrl)) {
+            addError("planetSubscription.error.feedUrl");
+            return;
+        }
+
+        try {
+            URI uri = new URI(subUrl);
+            String scheme = uri.getScheme();
+            if (StringUtils.isEmpty(scheme) || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || StringUtils.isEmpty(uri.getHost())) {
+                addError("planetSubscription.error.feedUrl");
+            }
+        } catch (URISyntaxException ex) {
             addError("planetSubscription.error.feedUrl");
         }
     }
