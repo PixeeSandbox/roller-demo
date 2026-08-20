@@ -28,7 +28,10 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -227,12 +230,49 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = validateFeedUri(url);
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
         }
        
+    }
+
+    private URI validateFeedUri(String url) throws IOException {
+        final URI feedUri;
+        try {
+            feedUri = new URI(url);
+        } catch (URISyntaxException ex) {
+            throw new IOException("Invalid feed URL", ex);
+        }
+
+        String scheme = feedUri.getScheme();
+        String host = feedUri.getHost();
+        if (scheme == null || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                || StringUtils.isBlank(host)) {
+            throw new IOException("Invalid feed URL");
+        }
+
+        try {
+            for (InetAddress address : InetAddress.getAllByName(host)) {
+                if (isInternalAddress(address)) {
+                    throw new IOException("Invalid feed URL");
+                }
+            }
+        } catch (UnknownHostException ex) {
+            throw new IOException("Invalid feed URL", ex);
+        }
+
+        return feedUri;
+    }
+
+    private boolean isInternalAddress(InetAddress address) {
+        return address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress();
     }
     
 }
