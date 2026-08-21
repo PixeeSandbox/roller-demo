@@ -29,6 +29,7 @@ import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -36,11 +37,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.roller.planet.config.PlanetRuntimeConfig;
 import org.apache.roller.planet.pojos.SubscriptionEntry;
 import org.apache.roller.planet.pojos.Subscription;
 
@@ -53,6 +57,9 @@ import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 public class RomeFeedFetcher implements FeedFetcher {
     
     private static final Log log = LogFactory.getLog(RomeFeedFetcher.class);
+    // TODO(developer): Add the real approved feed URL prefixes for this deployment via the planet.feedFetcher.allowedFeedPrefixes runtime property.
+    private static final String ALLOWED_FEED_PREFIXES_PROPERTY = "planet.feedFetcher.allowedFeedPrefixes";
+    private static final String DEFAULT_ALLOWED_FEED_PREFIX = "https://rollerweblogger.org/roller/feed/";
     
     // mutable, copy() first
     private static final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -82,8 +89,8 @@ public class RomeFeedFetcher implements FeedFetcher {
     @Override
     public Subscription fetchSubscription(String feedURL, Date lastModified) throws FetcherException {
 
-        if(feedURL == null) {
-            throw new IllegalArgumentException("feed url cannot be null");
+        if(StringUtils.isBlank(feedURL)) {
+            throw new IllegalArgumentException("feed url cannot be blank");
         }
         
         // fetch the feed
@@ -227,12 +234,73 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = validateFeedUri(url);
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
         }
        
+    }
+    
+    private URI validateFeedUri(String url) throws IOException {
+        if (StringUtils.isBlank(url)) {
+            throw new IOException("feed url cannot be blank");
+        }
+        
+        final URI uri;
+        try {
+            uri = new URI(url.trim());
+        } catch (URISyntaxException ex) {
+            throw new IOException("feed url is malformed", ex);
+        }
+        
+        if (uri.isOpaque() || uri.getScheme() == null || uri.getHost() == null) {
+            throw new IOException("feed url is invalid");
+        }
+        
+        if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new IOException("feed url must use http or https");
+        }
+        
+        if (!isAllowedFeedUri(uri)) {
+            throw new IOException("feed url is not in the approved destination allowlist");
+        }
+        
+        return uri;
+    }
+    
+    private boolean isAllowedFeedUri(URI uri) {
+        Set<String> allowedPrefixes = getAllowedFeedUrlPrefixes();
+        String candidate = uri.toString();
+        for (String allowedPrefix : allowedPrefixes) {
+            if (candidate.startsWith(allowedPrefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private Set<String> getAllowedFeedUrlPrefixes() {
+        Set<String> allowedPrefixes = new HashSet<>();
+        allowedPrefixes.add(DEFAULT_ALLOWED_FEED_PREFIX);
+        
+        String configuredPrefixes = PlanetRuntimeConfig.getProperty(ALLOWED_FEED_PREFIXES_PROPERTY);
+        if (StringUtils.isNotBlank(configuredPrefixes)) {
+            for (String configuredPrefix : configuredPrefixes.split(",")) {
+                String trimmedPrefix = configuredPrefix.trim();
+                if (StringUtils.isNotBlank(trimmedPrefix)) {
+                    allowedPrefixes.add(trimmedPrefix);
+                }
+            }
+        }
+        
+        String siteAbsoluteUrl = PlanetRuntimeConfig.getProperty("planet.site.absoluteurl");
+        if (StringUtils.isNotBlank(siteAbsoluteUrl)) {
+            allowedPrefixes.add(siteAbsoluteUrl.endsWith("/") ? siteAbsoluteUrl : siteAbsoluteUrl + "/");
+        }
+        
+        return allowedPrefixes;
     }
     
 }
