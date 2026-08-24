@@ -28,7 +28,9 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -227,12 +229,60 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = validateFeedUri(url);
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
         }
        
+    }
+    
+    private URI validateFeedUri(String url) throws IOException {
+        if (StringUtils.isBlank(url)) {
+            throw new IOException("Invalid feed url");
+        }
+
+        final URI feedUri;
+        try {
+            feedUri = URI.create(url.trim());
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("Invalid feed url", ex);
+        }
+
+        String scheme = feedUri.getScheme();
+        String host = feedUri.getHost();
+        if (scheme == null || host == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+            throw new IOException("Invalid feed url");
+        }
+
+        if ("metadata".equalsIgnoreCase(host) || "metadata.google.internal".equalsIgnoreCase(host)) {
+            throw new IOException("Invalid feed url");
+        }
+
+        final InetAddress[] addresses;
+        try {
+            addresses = InetAddress.getAllByName(host);
+        } catch (UnknownHostException ex) {
+            throw new IOException("Invalid feed url", ex);
+        }
+
+        for (InetAddress address : addresses) {
+            if (isBlockedAddress(address)) {
+                throw new IOException("Invalid feed url");
+            }
+        }
+
+        return feedUri;
+    }
+
+    private boolean isBlockedAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress()) {
+            return true;
+        }
+
+        byte[] rawAddress = address.getAddress();
+        return rawAddress.length == 16 && (rawAddress[0] == (byte) 0xfc || rawAddress[0] == (byte) 0xfd);
     }
     
 }
