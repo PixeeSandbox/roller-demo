@@ -237,7 +237,8 @@
                                  maxlength="255" tooltip="%{getText('weblogEdit.searchDescription.tooltip')}"/>
 
                     <s:textfield label="%{getText('weblogEdit.enclosureURL')}" name="bean.enclosureURL"
-                                 maxlength="255" tooltip="%{getText('weblogEdit.enclosureURL.tooltip')}"/>
+                                 maxlength="255" type="url" placeholder="https://example.com/file.mp3"
+                                 tooltip="%{getText('weblogEdit.enclosureURL.tooltip')}"/>
 
                     <s:if test="actionName == 'entryEdit'">
                         <s:if test="!bean.enclosureURL.isEmpty()">

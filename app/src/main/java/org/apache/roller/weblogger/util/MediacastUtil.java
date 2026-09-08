@@ -19,8 +19,12 @@
 package org.apache.roller.weblogger.util;
 
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,7 +58,21 @@ public final class MediacastUtil {
         
         MediacastResource resource = null;
         try {
-            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+            URI uri = new URI(url.trim());
+            String scheme = uri.getScheme();
+            if (scheme == null || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || uri.getHost() == null) {
+                throw new MalformedURLException("Unsupported MediaCast URL");
+            }
+            for (InetAddress address : InetAddress.getAllByName(uri.getHost())) {
+                if (isInternalAddress(address)) {
+                    throw new MalformedURLException("Unsupported MediaCast URL");
+                }
+            }
+
+            URL validatedUrl = uri.toURL();
+            HttpURLConnection con = (HttpURLConnection) validatedUrl.openConnection();
+            con.setInstanceFollowRedirects(false);
             con.setRequestMethod("HEAD");
             int response = con.getResponseCode();
             String message = con.getResponseMessage();
@@ -75,9 +93,9 @@ public final class MediacastUtil {
                 LOG.debug("Valid mediacast resource = " + resource.toString());
                 
             }
-        } catch (MalformedURLException mfue) {
+        } catch (MalformedURLException | URISyntaxException | UnknownHostException ex) {
             LOG.debug("Malformed MediaCast url: " + url);
-            throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", mfue);
+            throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", ex);
         } catch (Exception e) {
             LOG.error("ERROR while checking MediaCast URL: " + url + ": " + e.getMessage());
             throw new MediacastException(CHECK_FAILED, "weblogEdit.mediaCastFailedFetchingInfo", e);
@@ -85,4 +103,35 @@ public final class MediacastUtil {
         return resource;
     }
     
+    private static boolean isInternalAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress()
+                || address.isLinkLocalAddress() || address.isSiteLocalAddress()
+                || address.isMulticastAddress()) {
+            return true;
+        }
+
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            if (first == 10 || first == 127 || first == 0) {
+                return true;
+            }
+            if (first == 100 && second >= 64 && second <= 127) {
+                return true;
+            }
+            if (first == 172 && second >= 16 && second <= 31) {
+                return true;
+            }
+            return first == 192 && second == 168;
+        }
+
+        if (bytes.length == 16) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            return (first & 0xfe) == 0xfc || (first == 0xfe && (second & 0xc0) == 0x80);
+        }
+
+        return true;
+    }
 }

@@ -26,6 +26,17 @@
         </field-validator>
     </field>
     
+    <field name="bean.enclosureURL">
+        <field-validator type="url">
+            <message key="Entry.error.enclosureURLBad">unspecified key</message>
+        </field-validator>
+        
+        <field-validator type="regex">
+            <param name="expression">(?i)^https?://.+$</param>
+            <message key="Entry.error.enclosureURLBad">unspecified key</message>
+        </field-validator>
+    </field>
+    
     <field name="bean.text">
         <field-validator type="requiredstring">
             <message key="Entry.error.textNull">unspecified key</message>
