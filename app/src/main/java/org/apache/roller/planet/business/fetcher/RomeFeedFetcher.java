@@ -28,7 +28,10 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -227,7 +230,30 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI uri;
+        try {
+            uri = new URI(url);
+        } catch (URISyntaxException ex) {
+            throw new FeedException("Invalid feed URL", ex);
+        }
+        if (uri.getScheme() == null || (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme()))) {
+            throw new FeedException("Invalid feed URL");
+        }
+        if (uri.getHost() == null) {
+            throw new FeedException("Invalid feed URL");
+        }
+        try {
+            for (InetAddress address : InetAddress.getAllByName(uri.getHost())) {
+                if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                        || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+                    throw new FeedException("Invalid feed URL");
+                }
+            }
+        } catch (UnknownHostException ex) {
+            throw new FeedException("Invalid feed URL", ex);
+        }
+        
+        HttpRequest request = requestBuilder.copy().uri(uri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
