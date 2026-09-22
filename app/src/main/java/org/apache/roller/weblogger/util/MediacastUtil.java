@@ -19,8 +19,14 @@
 package org.apache.roller.weblogger.util;
 
 import java.net.HttpURLConnection;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -54,7 +60,47 @@ public final class MediacastUtil {
         
         MediacastResource resource = null;
         try {
-            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            if(scheme == null || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    || host == null || host.isBlank() || uri.getUserInfo() != null) {
+                throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed");
+            }
+
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            InetAddress validatedAddress = null;
+            for (InetAddress address : addresses) {
+                if (!isAllowedAddress(address)) {
+                    throw new UnknownHostException("Blocked address: " + address.getHostAddress());
+                }
+                if (validatedAddress == null) {
+                    validatedAddress = address;
+                }
+            }
+            if (validatedAddress == null) {
+                throw new UnknownHostException("No valid address found for host: " + host);
+            }
+
+            StringBuilder validatedUrl = new StringBuilder();
+            validatedUrl.append(scheme.toLowerCase()).append("://");
+            if (validatedAddress instanceof Inet6Address) {
+                validatedUrl.append('[').append(validatedAddress.getHostAddress()).append(']');
+            } else {
+                validatedUrl.append(validatedAddress.getHostAddress());
+            }
+            if (uri.getPort() != -1) {
+                validatedUrl.append(":").append(uri.getPort());
+            }
+            if (uri.getRawPath() != null) {
+                validatedUrl.append(uri.getRawPath());
+            }
+            if (uri.getRawQuery() != null) {
+                validatedUrl.append('?').append(uri.getRawQuery());
+            }
+
+            HttpURLConnection con = (HttpURLConnection) new URL(validatedUrl.toString()).openConnection();
+            con.setInstanceFollowRedirects(false);
             con.setRequestMethod("HEAD");
             int response = con.getResponseCode();
             String message = con.getResponseMessage();
@@ -78,11 +124,43 @@ public final class MediacastUtil {
         } catch (MalformedURLException mfue) {
             LOG.debug("Malformed MediaCast url: " + url);
             throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", mfue);
+        } catch (URISyntaxException | UnknownHostException | IllegalArgumentException e) {
+            LOG.debug("Invalid MediaCast url: " + url + ": " + e.getMessage());
+            throw new MediacastException(BAD_URL, "weblogEdit.mediaCastUrlMalformed", e);
         } catch (Exception e) {
             LOG.error("ERROR while checking MediaCast URL: " + url + ": " + e.getMessage());
             throw new MediacastException(CHECK_FAILED, "weblogEdit.mediaCastFailedFetchingInfo", e);
         }      
         return resource;
+    }
+
+    private static boolean isAllowedAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress()
+                || address.isLinkLocalAddress() || address.isSiteLocalAddress()
+                || address.isMulticastAddress()) {
+            return false;
+        }
+
+        byte[] bytes = address.getAddress();
+        if (address instanceof Inet4Address) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            if (first == 0 || first == 10 || first == 127
+                    || (first == 100 && second >= 64 && second <= 127)
+                    || (first == 169 && second == 254)
+                    || (first == 172 && second >= 16 && second <= 31)
+                    || (first == 192 && second == 168)) {
+                return false;
+            }
+        } else if (address instanceof Inet6Address) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            if ((first & 0xfe) == 0xfc || (first == 0xfe && (second & 0xc0) == 0x80)) {
+                return false;
+            }
+        }
+
+        return true;
     }
     
 }
