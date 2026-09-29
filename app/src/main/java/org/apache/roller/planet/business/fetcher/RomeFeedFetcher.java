@@ -28,7 +28,9 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.sql.Timestamp;
@@ -227,12 +229,48 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = validateFeedUrl(url);
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
         }
        
+    }
+    
+    private URI validateFeedUrl(String url) throws IOException {
+        final URI feedUri;
+        try {
+            feedUri = URI.create(url);
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("Invalid feed URL", ex);
+        }
+
+        String scheme = feedUri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IOException("Unsupported feed URL scheme");
+        }
+
+        String host = feedUri.getHost();
+        if (host == null) {
+            throw new IOException("Feed URL must include a host");
+        }
+
+        final InetAddress[] addresses;
+        try {
+            addresses = InetAddress.getAllByName(host);
+        } catch (UnknownHostException ex) {
+            throw new IOException("Unable to resolve feed host", ex);
+        }
+
+        for (InetAddress address : addresses) {
+            if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                    || address.isMulticastAddress() || address.isSiteLocalAddress()) {
+                throw new IOException("Feed URL resolves to a non-routable address");
+            }
+        }
+
+        return feedUri;
     }
     
 }
