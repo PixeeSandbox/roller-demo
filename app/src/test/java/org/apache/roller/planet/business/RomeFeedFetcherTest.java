@@ -94,5 +94,19 @@ public class RomeFeedFetcherTest  {
             throw ex;
         }
     }
+
+    @Test
+    public void testFetchFeedRejectsLoopbackUrl() {
+        FeedFetcher feedFetcher = WebloggerFactory.getWeblogger().getFeedFetcher();
+
+        assertThrows(FetcherException.class, () -> feedFetcher.fetchSubscription("http://127.0.0.1/"));
+    }
+
+    @Test
+    public void testFetchFeedRejectsUnsupportedScheme() {
+        FeedFetcher feedFetcher = WebloggerFactory.getWeblogger().getFeedFetcher();
+
+        assertThrows(FetcherException.class, () -> feedFetcher.fetchSubscription("file:///etc/passwd"));
+    }
     
 }
