@@ -20,6 +20,8 @@ import org.apache.roller.planet.pojos.Subscription;
 import org.apache.roller.planet.pojos.SubscriptionEntry;
 import org.apache.roller.weblogger.TestUtils;
 import org.apache.roller.weblogger.business.WebloggerFactory;
+import org.apache.roller.weblogger.util.MediacastException;
+import org.apache.roller.weblogger.util.MediacastUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,35 @@ public class EntryBasicTests {
         TestUtils.teardownSubscription(testSub.getId());
     }
     
+    @Test
+    public void testMediacastRejectsInvalidDestinations() {
+        String property = "roller.mediacast.allowedHosts";
+        String previousValue = System.getProperty(property);
+        System.setProperty(property, "127.0.0.1,10.0.0.1,100.100.100.200,[::1],[fc00::1]");
+        try {
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("file:///etc/passwd"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("ftp://example.com/resource"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("http://127.0.0.1/resource"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("http://10.0.0.1/resource"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("http://100.100.100.200/resource"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("http://[::1]/resource"));
+            assertThrows(MediacastException.class,
+                    () -> MediacastUtil.lookupResource("http://[fc00::1]/resource"));
+        } finally {
+            if (previousValue == null) {
+                System.clearProperty(property);
+            } else {
+                System.setProperty(property, previousValue);
+            }
+        }
+    }
+
     @Test
     public void testEntryCRUD() throws Exception {
         
