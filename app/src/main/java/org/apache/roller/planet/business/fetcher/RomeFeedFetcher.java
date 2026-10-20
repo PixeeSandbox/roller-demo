@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,6 +54,9 @@ import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 public class RomeFeedFetcher implements FeedFetcher {
     
     private static final Log log = LogFactory.getLog(RomeFeedFetcher.class);
+    // TODO(developer): Replace this example feed URL with the exact feed URLs approved for this deployment.
+    private static final Set<String> APPROVED_FEED_URLS = Set.of(
+            "https://rollerweblogger.org/roller/feed/entries/atom");
     
     // mutable, copy() first
     private static final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -227,7 +231,14 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = URI.create(url);
+        String scheme = feedUri.getScheme();
+        if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))
+                || feedUri.getHost() == null || feedUri.getUserInfo() != null
+                || !APPROVED_FEED_URLS.contains(url)) {
+            throw new IOException("Feed URL is not approved");
+        }
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
