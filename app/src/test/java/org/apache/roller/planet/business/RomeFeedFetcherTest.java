@@ -28,6 +28,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
+
 
 /**
  * Test database implementation of PlanetManager.
@@ -69,6 +73,18 @@ public class RomeFeedFetcherTest  {
         }
     }
 
+
+    @Test
+    public void testRejectUnapprovedFeedBeforeRequest() throws Exception {
+        try (ServerSocket serverSocket = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
+            serverSocket.setSoTimeout(1000);
+            String url = "http://127.0.0.1:" + serverSocket.getLocalPort() + "/feed";
+            FeedFetcher feedFetcher = WebloggerFactory.getWeblogger().getFeedFetcher();
+
+            assertThrows(FetcherException.class, () -> feedFetcher.fetchSubscription(url));
+            assertThrows(SocketTimeoutException.class, serverSocket::accept);
+        }
+    }
 
     @Test
     public void testFetchFeedConditionally() throws FetcherException {
