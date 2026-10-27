@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -40,6 +42,24 @@ public class Utilities {
     private static final Log mLogger = LogFactory.getLog(Utilities.class);
 
     public static final String TAG_SPLIT_CHARS = " ,\n\r\f\t";
+
+    public static boolean isAllowedHttpUrl(String url, Set<String> authorizedHosts) {
+        if (url == null || authorizedHosts == null) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(url);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    && uri.getRawUserInfo() == null
+                    && host != null && !host.isEmpty()
+                    && authorizedHosts.stream().anyMatch(authorizedHost ->
+                            host.equalsIgnoreCase(authorizedHost.trim()));
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
 
     private static final Pattern mLinkPattern = Pattern.compile("<a href=.*?>",
             Pattern.CASE_INSENSITIVE);

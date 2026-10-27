@@ -18,14 +18,35 @@
 
 package org.apache.roller.weblogger.util;
 
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test utilities.
  */
 public class UtilitiesTest  {
+
+    @Test
+    public void testIsAllowedHttpUrl() {
+        Set<String> authorizedHosts = Set.of("example.com");
+        assertTrue(Utilities.isAllowedHttpUrl("http://example.com/feed", authorizedHosts));
+        assertTrue(Utilities.isAllowedHttpUrl("https://example.com/feed", authorizedHosts));
+    }
+
+    @Test
+    public void testIsAllowedHttpUrlRejectsInvalidUrls() {
+        Set<String> authorizedHosts = Set.of("example.com");
+        assertFalse(Utilities.isAllowedHttpUrl("https://other.com/feed", authorizedHosts));
+        assertFalse(Utilities.isAllowedHttpUrl("https://notexample.com/feed", authorizedHosts));
+        assertFalse(Utilities.isAllowedHttpUrl("https://feed.example.com/feed", authorizedHosts));
+        assertFalse(Utilities.isAllowedHttpUrl("ftp://example.com/feed", authorizedHosts));
+        assertFalse(Utilities.isAllowedHttpUrl("https://user@example.com/feed", authorizedHosts));
+        assertFalse(Utilities.isAllowedHttpUrl("http://[", authorizedHosts));
+    }
 
     @Test
     public void testExtractHTML() {
