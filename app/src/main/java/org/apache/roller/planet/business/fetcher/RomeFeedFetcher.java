@@ -37,12 +37,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.roller.planet.pojos.SubscriptionEntry;
 import org.apache.roller.planet.pojos.Subscription;
+import org.apache.roller.weblogger.util.Utilities;
 
 import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 
@@ -53,6 +55,11 @@ import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 public class RomeFeedFetcher implements FeedFetcher {
     
     private static final Log log = LogFactory.getLog(RomeFeedFetcher.class);
+
+    // Configure roller.planet.feed.allowedHosts with comma-separated authorized feed hosts.
+    // TODO(developer): Replace "example.com" with the feed hosts authorized for this deployment
+    private static final Set<String> AUTHORIZED_FEED_HOSTS = Set.of(
+            System.getProperty("roller.planet.feed.allowedHosts", "example.com").split(","));
     
     // mutable, copy() first
     private static final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -226,7 +233,10 @@ public class RomeFeedFetcher implements FeedFetcher {
     }
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
-        
+
+        if (!Utilities.isAllowedHttpUrl(url, AUTHORIZED_FEED_HOSTS)) {
+            throw new IOException("Feed URL is invalid or its host is not authorized");
+        }
         HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
