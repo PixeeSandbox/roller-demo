@@ -654,6 +654,29 @@ This section covers some tips and tricks that can help you get the most
 out of Roller. It covers Roller’s Planet feed aggregator and how to
 setup Roller to use server-provided resources.
 
+=== Mandatory feed-fetch egress policy
+
+Feed fetching is disabled and fails closed until the deployment-specific proxy endpoint, exact approved feed-host allowlist, and egress network rules described below are in place. This requirement applies to every runtime mode, including Docker Compose and standalone Tomcat/Jetty installations.
+
+Configure the Roller process with both environment variables consumed by `RomeFeedFetcher`:
+
+// TODO(developer): Set these values to the deployment-specific proxy endpoint and exact approved feed hostnames before enabling feed fetching.
+* `ROLLER_FEED_PROXY`: the mandatory HTTP proxy endpoint, including the deployment-specific proxy host and port.
+* `ROLLER_FEED_ALLOWED_HOSTS`: a comma-separated list of exact approved DNS hostnames. Do not use wildcard entries; an empty or missing list denies all feeds. Keep the list limited to the feed hosts intentionally approved by the operator.
+
+In Docker Compose, provide these values through the Roller service environment. For standalone Tomcat/Jetty, supply them to the server process using the service manager/container environment configuration; do not put permissive defaults in the application. Configure an egress proxy that performs IPv4 and IPv6 destination filtering after DNS resolution and blocks loopback, private, link-local, multicast, and all other prohibited/internal or non-public ranges. The proxy must also reject redirects. The application disables HTTP client redirect following, but the proxy-side destination policy is required.
+
+Enforce a runtime network policy that denies direct outbound connections from the Roller process/container, allowing connections only to the configured feed proxy and explicitly required application services such as the database. Docker Compose network declarations alone do not establish this security boundary. Apply and verify host/container firewall, orchestration, or equivalent network controls for every supported runtime mode.
+
+Deployment acceptance check:
+
+. Confirm that an approved external feed is fetched through the configured proxy.
+. Make the proxy unavailable and confirm feed fetching fails rather than connecting directly.
+. Confirm that the proxy denies attempts to reach loopback, private, and link-local IPv4 and IPv6 destinations after name resolution.
+. Confirm that direct outbound connections from the Roller runtime are blocked, except to the proxy and explicitly required application services.
+
+Do not enable feed fetching or treat deployment as complete until all these controls and checks are in place.
+
 === Setting up Roller’s Planet feed aggregator
 
 Roller includes a RSS/Atom feed aggregator that makes it possible to run
