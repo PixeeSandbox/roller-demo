@@ -18,9 +18,23 @@
 
 package org.apache.roller.weblogger.util;
 
+import okhttp3.Dns;
+import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.apache.roller.planet.business.fetcher.RomeFeedFetcher;
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test utilities.
@@ -41,6 +55,60 @@ public class UtilitiesTest  {
         String expect = "a bold sentence with a link";
         String result = Utilities.removeHTML(test, false);
         assertEquals(expect, result);
+    }
+
+    @Test
+    public void testPinnedResolverUsesOnlyValidatedAddresses() throws Exception {
+        AtomicInteger lookups = new AtomicInteger();
+        InetAddress publicAddress = InetAddress.getByAddress(new byte[]{(byte) 93, (byte) 184, (byte) 216, (byte) 34});
+        InetAddress privateAddress = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+        Dns changingResolver = host -> {
+            if (lookups.incrementAndGet() == 1) {
+                return List.of(publicAddress);
+            }
+            return List.of(privateAddress);
+        };
+
+        OkHttpClient client = RomeFeedFetcher.createPinnedHttpClient("rebinding.example", changingResolver);
+        assertEquals(List.of(publicAddress), client.dns().lookup("rebinding.example"));
+        assertEquals(List.of(publicAddress), client.dns().lookup("rebinding.example"));
+        assertEquals(1, lookups.get());
+    }
+
+    @Test
+    public void testPinnedResolverRejectsDisallowedAddresses() {
+        Dns privateResolver = host -> List.of(InetAddress.getLoopbackAddress());
+        assertThrows(UnknownHostException.class,
+                () -> RomeFeedFetcher.createPinnedHttpClient("localhost", privateResolver));
+    }
+
+    @Test
+    public void testFeedClientDoesNotFollowRedirects() throws Exception {
+        Dns resolver = host -> List.of(InetAddress.getByAddress(
+                new byte[]{(byte) 93, (byte) 184, (byte) 216, (byte) 34}));
+        AtomicInteger requests = new AtomicInteger();
+        OkHttpClient client = RomeFeedFetcher.createPinnedHttpClient("redirect.example", resolver)
+                .newBuilder()
+                .addInterceptor(chain -> {
+                    requests.incrementAndGet();
+                    return new Response.Builder()
+                            .request(chain.request())
+                            .protocol(Protocol.HTTP_1_1)
+                            .code(302)
+                            .message("Found")
+                            .header("Location", "http://target.example/feed")
+                            .body(ResponseBody.create(null, ""))
+                            .build();
+                })
+                .build();
+
+        try (Response response = client.newCall(new Request.Builder()
+                .url("http://redirect.example/feed").build()).execute()) {
+            assertEquals(302, response.code());
+        }
+        assertEquals(1, requests.get());
+        assertFalse(client.followRedirects());
+        assertFalse(client.followSslRedirects());
     }
 
     @Test

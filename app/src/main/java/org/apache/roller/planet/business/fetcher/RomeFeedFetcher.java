@@ -28,15 +28,22 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import okhttp3.Dns;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -44,27 +51,91 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.roller.planet.pojos.SubscriptionEntry;
 import org.apache.roller.planet.pojos.Subscription;
 
-import static java.net.http.HttpResponse.BodyHandlers.ofInputStream;
 
 
 /**
- * A FeedFetcher based on Apache ROME and {@link java.net.http.HttpClient}.
+ * A FeedFetcher based on Apache ROME and OkHttp.
  */
 public class RomeFeedFetcher implements FeedFetcher {
     
     private static final Log log = LogFactory.getLog(RomeFeedFetcher.class);
     
-    // mutable, copy() first
-    private static final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                                .timeout(Duration.ofSeconds(3))
-                                .header("User-Agent", "RollerPlanetAggregator");
-    
-    private final HttpClient client;
-    
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(3);
+    private static final String APPROVED_HOSTS_PROPERTY = "rollerplanet.feed.allowedHosts";
+
     public RomeFeedFetcher() {
-        // immutable + thread safe, prefers HTTP/2, no redirects
-        this.client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(3)).build();
+    }
+
+    public static List<InetAddress> resolvePublicAddresses(String host, Dns resolver) throws UnknownHostException {
+        List<InetAddress> addresses = resolver.lookup(host);
+        if (addresses.isEmpty()) {
+            throw new UnknownHostException("No addresses found for host");
+        }
+        for (InetAddress address : addresses) {
+            if (!isPublicAddress(address)) {
+                throw new UnknownHostException("Host resolves to a non-public address");
+            }
+        }
+        return List.copyOf(addresses);
+    }
+
+    public static OkHttpClient createPinnedHttpClient(String host, Dns resolver) throws UnknownHostException {
+        List<InetAddress> addresses = resolvePublicAddresses(host, resolver);
+        Dns pinnedResolver = requestedHost -> {
+            if (!host.equalsIgnoreCase(requestedHost)) {
+                throw new UnknownHostException("Unexpected host");
+            }
+            return addresses;
+        };
+        return new OkHttpClient.Builder()
+                .dns(pinnedResolver)
+                .callTimeout(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+                .connectTimeout(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+                .readTimeout(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+                .writeTimeout(REQUEST_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .build();
+    }
+
+    private static boolean isPublicAddress(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return false;
+        }
+        byte[] bytes = address.getAddress();
+        if (address instanceof Inet4Address) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            int third = bytes[2] & 0xff;
+            return first != 0 && first < 224
+                    && !(first == 100 && second >= 64 && second <= 127)
+                    && !(first == 192 && (second == 0 || second == 2 || second == 168))
+                    && !(first == 192 && second == 88 && third == 99)
+                    && !(first == 198 && (second == 18 || second == 19))
+                    && !(first == 198 && second == 51 && third == 100)
+                    && !(first == 203 && second == 0 && third == 113);
+        }
+        if (address instanceof Inet6Address) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            return (first & 0xe0) == 0x20
+                    && !(first == 0x20 && second == 0x01 && (bytes[2] & 0xfe) == 0)
+                    && !(first == 0x20 && second == 0x01 && (bytes[2] & 0xff) == 0x0d
+                            && (bytes[3] & 0xff) == 0xb8)
+                    && !(first == 0x20 && second == 0x02);
+        }
+        return false;
+    }
+
+    public static boolean isApprovedHost(String host) {
+        String approvedHosts = System.getProperty(APPROVED_HOSTS_PROPERTY, "");
+        for (String approvedHost : approvedHosts.split(",")) {
+            if (!approvedHost.trim().isEmpty() && host.equalsIgnoreCase(approvedHost.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -226,13 +297,51 @@ public class RomeFeedFetcher implements FeedFetcher {
     }
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
-        
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
-        
-        try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
-            return new SyndFeedInput().build(reader);
+        URI uri;
+        try {
+            uri = URI.create(url);
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("Invalid feed URL", ex);
         }
-       
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        String resolverHost = host != null && host.startsWith("[") && host.endsWith("]")
+                ? host.substring(1, host.length() - 1) : host;
+        if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))
+                || resolverHost == null || resolverHost.isEmpty() || uri.getRawUserInfo() != null
+                || !isValidHost(resolverHost) || !isApprovedHost(resolverHost)) {
+            throw new IOException("Feed host is not approved");
+        }
+
+        OkHttpClient client = createPinnedHttpClient(resolverHost, Dns.SYSTEM);
+        Request request = new Request.Builder()
+                .url(uri.toString())
+                .header("User-Agent", "RollerPlanetAggregator")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() == null) {
+                throw new IOException("Feed response has no body");
+            }
+            try (XmlReader reader = new XmlReader(response.body().byteStream())) {
+                return new SyndFeedInput().build(reader);
+            }
+        }
+    }
+
+    private static boolean isValidHost(String host) {
+        if (host.startsWith("[") || host.endsWith("]") || host.endsWith(".")) {
+            return false;
+        }
+        if (host.matches("[0-9.]+") || host.contains(":")) {
+            try {
+                return isPublicAddress(InetAddress.getByName(host));
+            } catch (UnknownHostException ex) {
+                return false;
+            }
+        }
+        return host.matches("(?i)[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?")
+                && !host.contains("..") && !host.startsWith(".");
     }
     
 }
