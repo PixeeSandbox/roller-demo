@@ -21,6 +21,7 @@ package org.apache.roller.weblogger.util;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test utilities.
@@ -41,6 +42,20 @@ public class UtilitiesTest  {
         String expect = "a bold sentence with a link";
         String result = Utilities.removeHTML(test, false);
         assertEquals(expect, result);
+    }
+
+    @Test
+    public void testMediacastRejectsNonHttpScheme() {
+        MediacastException exception = assertThrows(MediacastException.class,
+                () -> MediacastUtil.lookupResource("ftp://example.com/resource"));
+        assertEquals(MediacastUtil.BAD_URL, exception.getErrorCode());
+    }
+
+    @Test
+    public void testMediacastRejectsLoopbackDestination() {
+        MediacastException exception = assertThrows(MediacastException.class,
+                () -> MediacastUtil.lookupResource("http://127.0.0.1/resource"));
+        assertEquals(MediacastUtil.BAD_URL, exception.getErrorCode());
     }
 
     @Test
