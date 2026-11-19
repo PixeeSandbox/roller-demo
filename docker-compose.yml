@@ -44,4 +44,10 @@ services:
          - type: bind
            source: ./docker/roller-data
            target: /var/lib/roller/data
+      environment:
+         # TODO(developer): Replace the empty ROLLER_FEED_PROXY with the mandatory deployment feed-proxy endpoint.
+         - ROLLER_FEED_PROXY=${ROLLER_FEED_PROXY:-}
+         # TODO(developer): Replace the empty ROLLER_FEED_ALLOWED_HOSTS with an exact comma-separated feed hostname allowlist.
+         - ROLLER_FEED_ALLOWED_HOSTS=${ROLLER_FEED_ALLOWED_HOSTS:-}
+      # TODO(developer): Enforce host/container egress policy so Roller can reach only required application services and the feed proxy; verify this during deployment. Compose networks alone do not enforce this boundary.
 

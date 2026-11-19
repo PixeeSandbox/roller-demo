@@ -18,9 +18,15 @@
 
 package org.apache.roller.weblogger.util;
 
+import org.apache.roller.planet.business.fetcher.FetcherException;
+import org.apache.roller.planet.business.fetcher.RomeFeedFetcher;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test utilities.
@@ -60,6 +66,47 @@ public class UtilitiesTest  {
         assertEquals(expect, result);
     }
     
+    @Test
+    public void testFeedFetcherRejectsUnconfiguredAndDisallowedHosts() {
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("https://feeds.example.org/rss", ""));
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("https://other.example.org/rss", "feeds.example.org"));
+    }
+
+    @Test
+    public void testFeedFetcherRejectsMalformedAndUnsupportedDestinations() {
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("file:///etc/passwd", "feeds.example.org"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("http://user@feeds.example.org/rss", "feeds.example.org"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("http://feeds.example.org:8080/rss", "feeds.example.org"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("http://feeds.example.org:abc/rss", "feeds.example.org"));
+        assertThrows(IllegalArgumentException.class,
+                () -> RomeFeedFetcher.validateFeedUri("http://127.0.0.1/rss", "127.0.0.1"));
+    }
+
+    @Test
+    public void testFeedFetcherDoesNotFetchWithoutConfiguredProxy() {
+        RomeFeedFetcher fetcher = new RomeFeedFetcher("", "feeds.example.org");
+        assertThrows(FetcherException.class,
+                () -> fetcher.fetchSubscription("http://feeds.example.org/rss"));
+    }
+
+    @Test
+    public void testFeedFetcherDoesNotBypassUnavailableProxy() throws IOException {
+        int unavailablePort;
+        try (ServerSocket socket = new ServerSocket(0)) {
+            unavailablePort = socket.getLocalPort();
+        }
+        RomeFeedFetcher fetcher = new RomeFeedFetcher("http://127.0.0.1:" + unavailablePort,
+                "feeds.example.org");
+        assertThrows(FetcherException.class,
+                () -> fetcher.fetchSubscription("http://feeds.example.org/rss"));
+    }
+
     /* broken because it uses UtilitiesModel which is part of .ui.* package
     @Test
     public void testAddNoFollow() {

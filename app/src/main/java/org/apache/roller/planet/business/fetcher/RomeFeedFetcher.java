@@ -28,6 +28,10 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -37,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,11 +67,123 @@ public class RomeFeedFetcher implements FeedFetcher {
                                 .header("User-Agent", "RollerPlanetAggregator");
     
     private final HttpClient client;
+    private final Set<String> allowedFeedHosts;
+    private final Proxy feedProxy;
     
     public RomeFeedFetcher() {
+        this(System.getenv("ROLLER_FEED_PROXY"), System.getenv("ROLLER_FEED_ALLOWED_HOSTS"));
+    }
+
+    public RomeFeedFetcher(String proxyEndpoint, String allowedHosts) {
+        this.allowedFeedHosts = parseAllowedHosts(allowedHosts);
+        this.feedProxy = createFeedProxy(proxyEndpoint);
         // immutable + thread safe, prefers HTTP/2, no redirects
         this.client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(3)).build();
+                .connectTimeout(Duration.ofSeconds(3))
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .proxy(new FeedProxySelector(feedProxy))
+                .build();
+    }
+
+    private static Set<String> parseAllowedHosts(String allowedHosts) {
+        if (StringUtils.isBlank(allowedHosts)) {
+            return Set.of();
+        }
+        return java.util.Arrays.stream(allowedHosts.split(",", -1))
+                .map(String::trim)
+                .map(host -> validateHostname(host).toLowerCase(Locale.ROOT))
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static String validateHostname(String hostname) {
+        if (hostname == null || !hostname.matches("(?i)(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*")
+                || hostname.matches("(?i)(?:0x[0-9a-f]+|[0-9]+)(?:\\.(?:0x[0-9a-f]+|[0-9]+))*")) {
+            throw new IllegalArgumentException("Invalid feed hostname");
+        }
+        return hostname;
+    }
+
+    private static Proxy createFeedProxy(String proxyEndpoint) {
+        if (StringUtils.isBlank(proxyEndpoint)) {
+            return null;
+        }
+        try {
+            URI proxyUri = URI.create(proxyEndpoint);
+            String host = proxyUri.getHost();
+            int port = proxyUri.getPort();
+            if (!"http".equalsIgnoreCase(proxyUri.getScheme()) || host == null || port < 1 || port > 65535
+                    || proxyUri.getRawUserInfo() != null || proxyUri.getRawQuery() != null
+                    || proxyUri.getRawFragment() != null || proxyUri.getRawAuthority().contains("%")
+                    || proxyUri.getRawAuthority().contains("@")
+                    || !(proxyUri.getRawAuthority().equalsIgnoreCase(host + ":" + port))
+                    || (proxyUri.getRawPath() != null && !proxyUri.getRawPath().isEmpty()
+                    && !"/".equals(proxyUri.getRawPath()))) {
+                throw new IllegalArgumentException("Invalid feed proxy configuration");
+            }
+            return new Proxy(Proxy.Type.HTTP, InetSocketAddress.createUnresolved(host, port));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid feed proxy configuration", ex);
+        }
+    }
+
+    private static final class FeedProxySelector extends ProxySelector {
+        private final Proxy proxy;
+
+        private FeedProxySelector(Proxy proxy) {
+            this.proxy = proxy;
+        }
+
+        @Override
+        public List<Proxy> select(URI uri) {
+            if (proxy == null) {
+                throw new IllegalStateException("Feed proxy is not configured");
+            }
+            if (uri == null || !("http".equalsIgnoreCase(uri.getScheme())
+                    || "https".equalsIgnoreCase(uri.getScheme()))) {
+                throw new IllegalArgumentException("Unsupported feed URI scheme");
+            }
+            return List.of(proxy);
+        }
+
+        @Override
+        public void connectFailed(URI uri, SocketAddress address, IOException exception) {
+            log.warn("Feed proxy connection failed", exception);
+        }
+    }
+
+    public static URI validateFeedUri(String url, String allowedHosts) {
+        return validateFeedUri(url, parseAllowedHosts(allowedHosts));
+    }
+
+    private static URI validateFeedUri(String url, Set<String> allowedHosts) {
+        URI uri;
+        try {
+            uri = URI.create(url);
+        } catch (RuntimeException ex) {
+            throw new IllegalArgumentException("Invalid feed URI", ex);
+        }
+        String scheme = uri.getScheme();
+        String host = uri.getHost();
+        if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                || !uri.isAbsolute() || host == null || uri.getRawUserInfo() != null
+                || uri.getRawAuthority() == null || uri.getRawAuthority().contains("%")
+                || uri.getRawAuthority().contains("\\") || uri.getRawAuthority().contains("@")) {
+            throw new IllegalArgumentException("Invalid feed URI");
+        }
+        String normalizedHost = validateHostname(host).toLowerCase(Locale.ROOT);
+        int port = uri.getPort();
+        if (port != -1 && port != ("http".equalsIgnoreCase(scheme) ? 80 : 443)) {
+            throw new IllegalArgumentException("Unsupported feed port");
+        }
+        String authority = uri.getRawAuthority();
+        String expectedAuthority = host + (port == -1 ? "" : ":" + port);
+        if (!authority.equalsIgnoreCase(expectedAuthority)) {
+            throw new IllegalArgumentException("Ambiguous feed authority");
+        }
+        if (!allowedHosts.contains(normalizedHost)) {
+            throw new IllegalArgumentException("Feed hostname is not allowed");
+        }
+        return uri;
     }
     
     /**
@@ -227,7 +346,11 @@ public class RomeFeedFetcher implements FeedFetcher {
     
     private SyndFeed fetchFeed(String url) throws IOException, InterruptedException, FeedException {
         
-        HttpRequest request = requestBuilder.copy().uri(URI.create(url)).build();
+        URI feedUri = validateFeedUri(url, allowedFeedHosts);
+        if (feedProxy == null) {
+            throw new IOException("Feed proxy is not configured");
+        }
+        HttpRequest request = requestBuilder.copy().uri(feedUri).build();
         
         try(XmlReader reader = new XmlReader(client.send(request, ofInputStream()).body())) {
             return new SyndFeedInput().build(reader);
