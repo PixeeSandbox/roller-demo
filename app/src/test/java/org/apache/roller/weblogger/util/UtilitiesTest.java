@@ -18,9 +18,16 @@
 
 package org.apache.roller.weblogger.util;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
+import org.apache.roller.planet.business.fetcher.FetcherException;
+import org.apache.roller.planet.business.fetcher.RomeFeedFetcher;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test utilities.
@@ -60,6 +67,30 @@ public class UtilitiesTest  {
         assertEquals(expect, result);
     }
     
+    @Test
+    public void testFeedFetcherRejectsLoopbackBeforeConnection() throws IOException {
+        String previousHosts = System.getProperty("roller.feed.allowedHosts");
+        System.setProperty("roller.feed.allowedHosts", "localhost");
+        try (ServerSocket server = new ServerSocket(0)) {
+            server.setSoTimeout(500);
+            String feedUrl = "http://localhost:" + server.getLocalPort() + "/feed";
+            assertThrows(FetcherException.class, () -> new RomeFeedFetcher().fetchSubscription(feedUrl));
+            boolean connectionAccepted = true;
+            try {
+                server.accept().close();
+            } catch (SocketTimeoutException expected) {
+                connectionAccepted = false;
+            }
+            assertFalse(connectionAccepted);
+        } finally {
+            if (previousHosts == null) {
+                System.clearProperty("roller.feed.allowedHosts");
+            } else {
+                System.setProperty("roller.feed.allowedHosts", previousHosts);
+            }
+        }
+    }
+
     /* broken because it uses UtilitiesModel which is part of .ui.* package
     @Test
     public void testAddNoFollow() {
